@@ -1,0 +1,9 @@
+services:
+  db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    ports: [ "5432:5432" ]
+    environment: # User: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: hbv501g
