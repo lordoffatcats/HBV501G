@@ -2,14 +2,14 @@ package org.team5.api.feature.account;
 
 import jakarta.persistence.*;
 import org.team5.api.feature.course.Course;
-//import org.team5.api.feature.reply.Reply;
-//import org.team5.api.feature.thread.Thread;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Entity
 public class Account {
+
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
@@ -23,34 +23,36 @@ public class Account {
 
     private byte[] profilePicture;
 
-    @OneToMany(mappedBy = "members")
-    private List<Course> courses;
-
-    //@OneToMany
-    //private List<Reply> replies;
-
-    //@OneToMany
-    //private List<Thread> threads;
+    @ManyToMany(mappedBy = "members")
+    private List<Course> courses = new ArrayList<>();
 
     public UUID getId() {
-        return id;
+        return this.id;
     }
 
-    public String getEmail() { return this.email; }
+    public String getEmail() {
+        return this.email;
+    }
 
     public String getUsername() {
-        return username;
+        return this.username;
     }
 
-    public boolean isAdmin() { return this.isAdmin; }
+    public boolean isAdmin() {
+        return this.isAdmin;
+    }
 
     public byte[] getProfilePicture() {
-        return profilePicture;
+        return this.profilePicture;
     }
 
-    public List<Course> getCourses() { return this.courses; }
+    public List<Course> getCourses() {
+        return this.courses;
+    }
 
-    public void setEmail(String email) { this.email = email; }
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
     public Account() {}
 
