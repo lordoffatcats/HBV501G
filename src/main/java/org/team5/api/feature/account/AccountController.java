@@ -1,30 +1,87 @@
 package org.team5.api.feature.account;
 
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
 public class AccountController {
-    private final AccountRepository repository;
+    private final AccountService accountService;
 
-    public AccountController(AccountRepository repository) {
-        this.repository = repository;
+    public AccountController(AccountService accountService) {
+        this.accountService = accountService;
     }
 
-    public Account createAccount(Account account) {return null;};
+    @PostMapping("/accounts")
+    public ResponseEntity<ExtendedAccountDto> createAccount(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        String username = body.get("username");
+        String password = body.get("password");
+        ExtendedAccountDto result = new ExtendedAccountDto(
+            accountService.createAccount(
+                email,
+                username,
+                password,
+                false
+            )
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+    };
 
-    public String signIn(String username, String password) {return null;}
+    @PostMapping("/accounts/signin")
+    public String signIn(String username, String password) {
+        // TODO:
+        return null;
+    }
 
-    public Account editAccount(UUID id, Account account) {return null;}
+    @PatchMapping("/accounts/")
+    public ExtendedAccountDto editAccount(UUID id, Account account) {
+        // TODO:
+        return null;
+    }
 
-    public void deleteAccount(UUID id) {return;}
+    @DeleteMapping("/account")
+    public void deleteAccount(UUID id) {
+        // TODO:
+        return;
+    }
 
-    public Account createAdminAccount(Account account) {return null;}
+    @PostMapping("/accounts/admin")
+    public ExtendedAccountDto createAdminAccount(Account account) {
+        // TODO:
+        return null;
+    }
 
-    public Account editAccountAsAdmin(UUID id, Account account) {return null;}
 
-    public Account getAccountAsAdmin(UUID id) {return null;}
+    @GetMapping("/account")
+    public ExtendedAccountDto getAccount() {
+        // TODO:
+        return null;
+    }
 
-    public Account uploadProfilePicture(UUID id, byte[] profilePicture) {return null;}
+    @GetMapping("/accounts/{id}")
+    public ExtendedAccountDto getAccountAsAdmin(UUID id) {
+        // TODO:
+        return null;
+    }
+
+    @PatchMapping("accounts/{id}")
+    public ExtendedAccountDto editAccountAsAdmin(UUID id, Account account) {
+        // TODO:
+        return null;
+    }
+
+    @PutMapping(
+            value = "/account/profile-picture",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE //takes in an image file
+    )
+    public ExtendedAccountDto uploadProfilePicture(UUID id, byte[] profilePicture) {
+        // TODO:
+        return null;
+    }
 }

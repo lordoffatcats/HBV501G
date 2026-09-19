@@ -6,13 +6,13 @@ import java.util.UUID;
 
 @Service
 public interface AccountService {
-    public Account createAccount(Account account);
+    public Account createAccount(String email, String username, String password, boolean isAdmin);
 
     public String authenticate(String username, String password);
 
     public Account getAccount(UUID id);
 
-    public Account updateAccount(UUID id, Account account);
+    public Account updateAccount(UUID id, String email);
 
     public void deleteAccount(UUID id);
 
