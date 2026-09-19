@@ -52,11 +52,11 @@ public class CourseController {
     }
 
     @GetMapping("/courses")
-    public ResponseEntity<List<CourseDto>> getAllCourses() {
+    public ResponseEntity<List<ExtendedCourseDto>> getAllCourses() {
         // TODO: Admin authentication
-        List<CourseDto> courses = courseService.getAllCourses()
+        List<ExtendedCourseDto> courses = courseService.getAllCourses()
             .stream()
-            .map(CourseDto::new)
+            .map(ExtendedCourseDto::new)
             .toList();
 
         return ResponseEntity.ok(courses);

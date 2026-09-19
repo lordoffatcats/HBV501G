@@ -12,8 +12,10 @@ public class Course {
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(unique = true, nullable = false)
     private String name;
 
+    @Column(unique = true, nullable = false)
     private String joinCode;
 
     @ManyToMany

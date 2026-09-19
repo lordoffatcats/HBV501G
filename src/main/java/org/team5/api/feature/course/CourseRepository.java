@@ -12,4 +12,5 @@ public interface CourseRepository extends Repository<Course, UUID> {
     List<Course> findByMembersId(UUID accountId);
     List<Course> findAll();
     boolean existsByIdAndMembersId(UUID courseId, UUID accountId);
+    boolean existsByJoinCode(String joinCode);
 }
