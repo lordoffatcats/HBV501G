@@ -72,15 +72,12 @@ public class CourseServiceImpl implements CourseService {
     private String generateJoinCode() {
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         ThreadLocalRandom random = ThreadLocalRandom.current();
-
         String joinCode;
 
         do {
             joinCode = IntStream.range(0, 6)
-                    .mapToObj(i -> String.valueOf(
-                            chars.charAt(random.nextInt(chars.length()))
-                    ))
-                    .collect(Collectors.joining());
+                .mapToObj(i -> String.valueOf(chars.charAt(random.nextInt(chars.length()))))
+                .collect(Collectors.joining());
         } while (courseRepository.existsByJoinCode(joinCode));
 
         return joinCode;

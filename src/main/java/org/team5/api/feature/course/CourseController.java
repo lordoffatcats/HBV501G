@@ -50,7 +50,7 @@ public class CourseController {
     }
 
     @GetMapping("/courses/mine")
-    public ResponseEntity<List<CourseDto>> getCourses() {
+    public ResponseEntity<List<CourseDto>> getUserCourses() {
         // TODO: Account connection
         List<CourseDto> courses = courseService.getUserCourses(userId)
             .stream()
