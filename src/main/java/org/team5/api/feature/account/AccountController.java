@@ -1,9 +1,6 @@
 package org.team5.api.feature.account;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -34,9 +31,13 @@ public class AccountController {
     };
 
     @PostMapping("/accounts/signin")
-    public String signIn(String username, String password) {
-        // TODO:
-        return null;
+    public ResponseEntity<String> signIn(@RequestBody Map<String, String> body) {
+        String username = body.get("username");
+        String password = body.get("password");
+        String token = accountService.authenticate(username, password);
+
+        // TODO: For future maybe set browser cookie, instead of just returning raw token.
+        return ResponseEntity.ok(token);
     }
 
     @PatchMapping("/accounts/")
@@ -52,9 +53,19 @@ public class AccountController {
     }
 
     @PostMapping("/accounts/admin")
-    public ExtendedAccountDto createAdminAccount(Account account) {
-        // TODO:
-        return null;
+    public ResponseEntity<ExtendedAccountDto> createAdminAccount(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        String username = body.get("username");
+        String password = body.get("password");
+        ExtendedAccountDto result = new ExtendedAccountDto(
+                accountService.createAccount(
+                        email,
+                        username,
+                        password,
+                        true
+                )
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
 
