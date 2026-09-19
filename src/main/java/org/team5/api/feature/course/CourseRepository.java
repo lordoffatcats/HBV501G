@@ -9,7 +9,7 @@ import java.util.UUID;
 public interface CourseRepository extends Repository<Course, UUID> {
     Course save(Course course);
     Optional<Course> findById(UUID id);
-    // TODO: List<Course> findByMemberId(UUID accountId);
+    List<Course> findByMembersId(UUID accountId);
     List<Course> findAll();
-    // TODO: boolean isUserInCourse(UUID courseId, UUID userId);
+    boolean existsByIdAndMembersId(UUID courseId, UUID accountId);
 }

@@ -11,6 +11,7 @@ import java.util.UUID;
 @RestController
 public class CourseController {
     private final CourseService courseService;
+    private final UUID userId = UUID.fromString("bb277ee4-eb29-430f-bff3-0df0ed8d581b");
 
     public CourseController(CourseService courseService) {
         this.courseService = courseService;
@@ -28,22 +29,21 @@ public class CourseController {
     public ResponseEntity<Void> joinCourse(@PathVariable UUID id, @RequestBody Map<String, String> body) {
         // TODO: Account connection
         String joinCode = body.get("joinCode");
-        courseService.joinCourse(id, id, joinCode);
+        courseService.joinCourse(id, userId, joinCode);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/courses/{id}/leave")
     public ResponseEntity<Void> leaveCourse(@PathVariable UUID id) {
         // TODO: Account connection
-        courseService.leaveCourse(id, id);
+        courseService.leaveCourse(id, userId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/courses/mine")
     public ResponseEntity<List<CourseDto>> getCourses() {
         // TODO: Account connection
-        UUID id = UUID.randomUUID();
-        List<CourseDto> courses = courseService.getUserCourses(id)
+        List<CourseDto> courses = courseService.getUserCourses(userId)
             .stream()
             .map(CourseDto::new)
             .toList();

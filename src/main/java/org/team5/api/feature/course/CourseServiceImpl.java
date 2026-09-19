@@ -1,16 +1,21 @@
 package org.team5.api.feature.course;
 
 import org.springframework.stereotype.Service;
+import org.team5.api.exceptions.BadRequestException;
+import org.team5.api.exceptions.NotFoundException;
+import org.team5.api.feature.account.Account;
+import org.team5.api.feature.account.AccountRepository;
 
 import java.util.List;
 import java.util.UUID;
 
 @Service
 public class CourseServiceImpl implements CourseService {
-    // TODO: Account repo
+    private final AccountRepository accountRepository;
     private final CourseRepository courseRepository;
 
-    public CourseServiceImpl(CourseRepository courseRepository) {
+    public CourseServiceImpl(AccountRepository accountRepository, CourseRepository courseRepository) {
+        this.accountRepository = accountRepository;
         this.courseRepository = courseRepository;
     }
 
@@ -22,18 +27,39 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public void joinCourse(UUID courseId, UUID accountId, String joinCode) {
-        // TODO: Account dependency
+        // TODO: Exceptions
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Course not found"));
+        Account account = accountRepository.findById(accountId).orElseThrow(() -> new NotFoundException("Account not found"));
+
+        if (!course.getJoinCode().equals(joinCode)) {
+            throw new BadRequestException("Invalid join code");
+        }
+
+        if (course.getMembers().contains(account)) {
+            throw new BadRequestException("User is already in course");
+        }
+
+        course.getMembers().add(account);
+        courseRepository.save(course);
     }
 
     @Override
     public void leaveCourse(UUID courseId, UUID accountId) {
-        // TODO: Account dependency
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Course not found"));
+        Account account = accountRepository.findById(accountId).orElseThrow(() -> new NotFoundException("Account not found"));
+
+        if (!course.getMembers().contains(account)) {
+            throw new BadRequestException("User is not in course");
+        }
+
+        course.getMembers().remove(account);
+        courseRepository.save(course);
     }
 
     @Override
     public List<Course> getUserCourses(UUID accountId) {
-        // TODO: Account dependency
-        return List.of();
+        Account account = accountRepository.findById(accountId).orElseThrow(() -> new NotFoundException("Account not found"));
+        return account.getCourses();
     }
 
     @Override
