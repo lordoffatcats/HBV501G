@@ -5,6 +5,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 import org.team5.api.exceptions.BadRequestException;
+import org.team5.api.exceptions.UnauthorizedException;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
