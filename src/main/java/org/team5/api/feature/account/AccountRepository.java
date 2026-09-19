@@ -8,6 +8,6 @@ import java.util.UUID;
 public interface AccountRepository extends Repository<Account, UUID> {
     Account save(Account account);
     Optional<Account> findById(UUID id);
-    Optional<Account> findByUsername(UUID id);
+    Optional<Account> findByUsername(String username);
     void deleteById(UUID id);
 }

@@ -3,6 +3,7 @@ package org.team5.api.feature.course;
 import jakarta.persistence.*;
 import org.team5.api.feature.account.Account;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -12,7 +13,6 @@ public class Course {
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(unique = true, nullable = false)
     private String name;
 
     @Column(unique = true, nullable = false)
@@ -24,7 +24,7 @@ public class Course {
         joinColumns = @JoinColumn(name = "course_id"),
         inverseJoinColumns = @JoinColumn(name = "members_id")
     )
-    private List<Account> members;
+    private List<Account> members = new ArrayList<>();
 
     public UUID getId() {
         return this.id;

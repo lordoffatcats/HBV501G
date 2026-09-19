@@ -2,6 +2,7 @@ package org.team5.api.feature.course;
 
 import org.springframework.stereotype.Service;
 import org.team5.api.exceptions.BadRequestException;
+import org.team5.api.exceptions.ConflictException;
 import org.team5.api.exceptions.NotFoundException;
 import org.team5.api.feature.account.Account;
 import org.team5.api.feature.account.AccountRepository;
@@ -37,8 +38,8 @@ public class CourseServiceImpl implements CourseService {
             throw new BadRequestException("Invalid join code");
         }
 
-        if (course.getMembers().contains(account)) {
-            throw new BadRequestException("User is already in course");
+        if (courseRepository.existsByIdAndMembersId(courseId, accountId)) {
+            throw new ConflictException("User is already in course");
         }
 
         course.getMembers().add(account);
@@ -50,8 +51,8 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Course not found"));
         Account account = accountRepository.findById(accountId).orElseThrow(() -> new NotFoundException("Account not found"));
 
-        if (!course.getMembers().contains(account)) {
-            throw new BadRequestException("User is not in course");
+        if (!courseRepository.existsByIdAndMembersId(courseId, accountId)) {
+            throw new ConflictException("User is not in course");
         }
 
         course.getMembers().remove(account);
@@ -60,8 +61,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public List<Course> getUserCourses(UUID accountId) {
-        Account account = accountRepository.findById(accountId).orElseThrow(() -> new NotFoundException("Account not found"));
-        return account.getCourses();
+        return courseRepository.findByMembersId(accountId);
     }
 
     @Override

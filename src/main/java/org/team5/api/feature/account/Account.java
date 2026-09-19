@@ -3,6 +3,7 @@ package org.team5.api.feature.account;
 import jakarta.persistence.*;
 import org.team5.api.feature.course.Course;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,7 +24,7 @@ public class Account {
     private byte[] profilePicture;
 
     @ManyToMany(mappedBy = "members")
-    private List<Course> courses;
+    private List<Course> courses = new ArrayList<>();
 
     public UUID getId() {
         return this.id;
