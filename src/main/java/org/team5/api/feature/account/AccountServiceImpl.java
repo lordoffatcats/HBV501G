@@ -1,5 +1,6 @@
 package org.team5.api.feature.account;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
@@ -16,10 +17,12 @@ import java.util.UUID;
 public class AccountServiceImpl  implements AccountService {
     private final AccountRepository accountRepository;
     private final JwtEncoder jwtEncoder;
+    private final PasswordEncoder passwordEncoder;
 
-    public AccountServiceImpl(AccountRepository accountRepository, JwtEncoder jwtEncoder) {
+    public AccountServiceImpl(AccountRepository accountRepository, JwtEncoder jwtEncoder, PasswordEncoder passwordEncoder) {
         this.accountRepository = accountRepository;
         this.jwtEncoder = jwtEncoder;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public Account createAccount(String email, String username, String password, boolean isAdmin) {
@@ -27,7 +30,8 @@ public class AccountServiceImpl  implements AccountService {
         if (existingAccount.isPresent()) {
             throw new BadRequestException("Username already exists");
         }
-        return accountRepository.save(new Account(email, username, password, isAdmin));
+        String hashedPassword = passwordEncoder.encode(password);
+        return accountRepository.save(new Account(email, username, hashedPassword, isAdmin));
     };
 
     public String authenticate(String username, String password) {
@@ -38,7 +42,7 @@ public class AccountServiceImpl  implements AccountService {
 
         Account existingAccount = account.get();
 
-        if (!existingAccount.getPassword().equals(password)) {
+        if (!passwordEncoder.matches(password, existingAccount.getPassword())) {
             throw new UnauthorizedException("Invalid username or password");
         }
 
