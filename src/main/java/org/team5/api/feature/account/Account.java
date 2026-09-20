@@ -38,9 +38,11 @@ public class Account {
         return this.username;
     }
 
-    public boolean isAdmin() {
-        return this.isAdmin;
+    public String getPassword() {
+        return password;
     }
+
+    public boolean isAdmin() { return this.isAdmin; }
 
     public byte[] getProfilePicture() {
         return this.profilePicture;

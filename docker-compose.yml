@@ -7,3 +7,4 @@ services:
     environment: # User: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: hbv501g
+      JWT_SECRET: ${PRODUCTION_JWT_SECRET}
