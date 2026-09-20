@@ -51,7 +51,7 @@ public class AccountServiceImpl  implements AccountService {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject(account.getId().toString())
                 .claim("username", account.getUsername())
-                .claim("isAdmin)",account.isAdmin())
+                .claim("isAdmin",account.isAdmin())
                 .issuedAt(now)
                 .expiresAt(now.plus(1, ChronoUnit.HOURS))
                 .build();

@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 
 @Configuration
 public class JwtConfig {
-    @Value("${jwt.secret")
+    @Value("${jwt.secret}")
     private String secret;
 
     @Bean
@@ -29,9 +29,10 @@ public class JwtConfig {
 
     @Bean
     public JwtEncoder jwtEncoder(SecretKey secretKey) {
-        return new NimbusJwtEncoder(
-                new ImmutableSecret<>(secretKey)
-        );
+        return NimbusJwtEncoder
+                .withSecretKey(secretKey)
+                .algorithm(MacAlgorithm.HS256)
+                .build();
     }
 
     @Bean

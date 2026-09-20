@@ -2,6 +2,7 @@ package org.team5.api.feature.account;
 
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.team5.api.exceptions.BadRequestException;
 
 import java.util.Map;
 import java.util.UUID;
@@ -19,6 +20,11 @@ public class AccountController {
         String email = body.get("email");
         String username = body.get("username");
         String password = body.get("password");
+
+        if (email == null || email.isBlank() || username == null || username.isBlank() || password == null || password.isBlank()) {
+            throw new BadRequestException("Email, username and password are required");
+        }
+
         ExtendedAccountDto result = new ExtendedAccountDto(
             accountService.createAccount(
                 email,
@@ -34,6 +40,9 @@ public class AccountController {
     public ResponseEntity<String> signIn(@RequestBody Map<String, String> body) {
         String username = body.get("username");
         String password = body.get("password");
+        if (username == null || username.isBlank() || password == null || password.isBlank()) {
+            throw new BadRequestException("Email, username and password are required");
+        }
         String token = accountService.authenticate(username, password);
 
         // TODO: For future maybe set browser cookie, instead of just returning raw token.
@@ -57,6 +66,9 @@ public class AccountController {
         String email = body.get("email");
         String username = body.get("username");
         String password = body.get("password");
+        if (email == null || email.isBlank() || username == null || username.isBlank() || password == null || password.isBlank()) {
+            throw new BadRequestException("Email, username and password are required");
+        }
         ExtendedAccountDto result = new ExtendedAccountDto(
                 accountService.createAccount(
                         email,
