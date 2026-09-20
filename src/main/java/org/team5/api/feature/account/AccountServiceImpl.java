@@ -5,7 +5,7 @@ import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
-import org.team5.api.exceptions.BadRequestException;
+import org.team5.api.exceptions.ConflictException;
 import org.team5.api.exceptions.UnauthorizedException;
 
 import java.time.Instant;
@@ -28,11 +28,11 @@ public class AccountServiceImpl  implements AccountService {
     public Account createAccount(String email, String username, String password, boolean isAdmin) {
         Optional<Account> existingAccount = accountRepository.findByUsername(username);
         if (existingAccount.isPresent()) {
-            throw new BadRequestException("Username already exists");
+            throw new ConflictException("Username already exists");
         }
         String hashedPassword = passwordEncoder.encode(password);
         return accountRepository.save(new Account(email, username, hashedPassword, isAdmin));
-    };
+    }
 
     public String authenticate(String username, String password) {
         Optional<Account> account = accountRepository.findByUsername(username);
@@ -47,7 +47,7 @@ public class AccountServiceImpl  implements AccountService {
         }
 
         return createJwt(existingAccount);
-    };
+    }
 
     private String createJwt(Account account) {
         Instant now = Instant.now();
@@ -68,19 +68,19 @@ public class AccountServiceImpl  implements AccountService {
     public Account getAccount(UUID id) {
         // TODO:
         return null;
-    };
+    }
 
     public Account updateAccount(UUID id, String email) {
         // TODO:
         return null;
-    };
+    }
 
     public void deleteAccount(UUID id) {
         // TODO:
-    };
+    }
 
     public Account updateProfilePicture(UUID id, byte[] profilePicture) {
         // TODO:
         return null;
-    };
+    }
 }
