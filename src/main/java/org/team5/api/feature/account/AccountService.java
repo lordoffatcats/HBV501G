@@ -1,20 +1,12 @@
 package org.team5.api.feature.account;
 
-import org.springframework.stereotype.Service;
-
 import java.util.UUID;
 
-@Service
 public interface AccountService {
-    public Account createAccount(String email, String username, String password, boolean isAdmin);
-
-    public String authenticate(String username, String password);
-
-    public Account getAccount(UUID id);
-
-    public Account updateAccount(UUID id, String email);
-
-    public void deleteAccount(UUID id);
-
-    public Account updateProfilePicture(UUID id, byte[] profilePicture);
+    Account createAccount(String email, String username, String password, boolean isAdmin);
+    String authenticate(String username, String password);
+    Account getAccount(UUID id);
+    Account updateAccount(UUID id, String email);
+    void deleteAccount(UUID id);
+    Account updateProfilePicture(UUID id, byte[] profilePicture);
 }

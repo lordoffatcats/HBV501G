@@ -1,8 +1,11 @@
 package org.team5.api.feature.account;
 
 import org.springframework.http.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.team5.api.exceptions.BadRequestException;
+import org.team5.api.exceptions.ForbiddenException;
 
 import java.util.Map;
 import java.util.UUID;
@@ -34,14 +37,14 @@ public class AccountController {
             )
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
-    };
+    }
 
     @PostMapping("/accounts/signin")
     public ResponseEntity<String> signIn(@RequestBody Map<String, String> body) {
         String username = body.get("username");
         String password = body.get("password");
         if (username == null || username.isBlank() || password == null || password.isBlank()) {
-            throw new BadRequestException("Email, username and password are required");
+            throw new BadRequestException("Username and password are required");
         }
         String token = accountService.authenticate(username, password);
 
@@ -62,7 +65,13 @@ public class AccountController {
     }
 
     @PostMapping("/accounts/admin")
-    public ResponseEntity<ExtendedAccountDto> createAdminAccount(@RequestBody Map<String, String> body) {
+    public ResponseEntity<ExtendedAccountDto> createAdminAccount(
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal Jwt jwt) {
+        if (!Boolean.TRUE.equals(jwt.getClaim("isAdmin"))) {
+            throw new ForbiddenException("You do not have permission to perform this action");
+        }
+
         String email = body.get("email");
         String username = body.get("username");
         String password = body.get("password");
