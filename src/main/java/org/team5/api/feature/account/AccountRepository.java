@@ -8,7 +8,7 @@ import java.util.UUID;
 public interface AccountRepository extends JpaRepository<Account, UUID> {
     public Account save(Account account);
 
-    public Optional<Account> findByID(UUID id);
+    public Optional<Account> findById(UUID id);
 
     public Optional<Account> findByUsername(String username);
 
