@@ -1,24 +1,25 @@
 package org.team5.api.feature.discussion;
 
+import org.team5.api.feature.account.AccountDto;
+import org.team5.api.feature.course.CourseDto;
+
 import java.time.Instant;
 import java.util.UUID;
 
-public class DiscussionThreadDto {
+public class ThreadDto {
     public final UUID id;
     public final String title;
     public final String content;
-    public final UUID authorId;
-    public final String authorUsername;
-    public final UUID courseId;
+    public final AccountDto author;
+    public final CourseDto course;
     public final Instant createdAt;
 
-    public DiscussionThreadDto(DiscussionThread thread) {
+    public ThreadDto(Thread thread) {
         this.id = thread.getId();
         this.title = thread.getTitle();
         this.content = thread.getContent();
-        this.authorId = thread.getAuthor().getId();
-        this.authorUsername = thread.getAuthor().getUsername();
-        this.courseId = thread.getCourse().getId();
+        this.author = new AccountDto(thread.getAuthor());
+        this.course = new CourseDto(thread.getCourse());
         this.createdAt = thread.getCreatedAt();
     }
 }

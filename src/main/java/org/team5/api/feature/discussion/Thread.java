@@ -9,13 +9,13 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "discussion_threads")
-public class DiscussionThread {
+public class Thread {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, length = 200)
+    @Column(nullable = false, length = 100)
     private String title;
 
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -32,9 +32,9 @@ public class DiscussionThread {
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
-    public DiscussionThread() {}
+    public Thread() {}
 
-    public DiscussionThread(String title, String content, Account author, Course course) {
+    public Thread(String title, String content, Account author, Course course) {
         this.title = title;
         this.content = content;
         this.author = author;
@@ -64,5 +64,21 @@ public class DiscussionThread {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public void setAuthor(Account author) {
+        this.author = author;
+    }
+
+    public void setCourse(Course course) {
+        this.course = course;
     }
 }

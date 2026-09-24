@@ -12,15 +12,15 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-public class DiscussionThreadController {
-    private final DiscussionThreadService discussionThreadService;
+public class ThreadController {
+    private final ThreadService threadService;
 
-    public DiscussionThreadController(DiscussionThreadService discussionThreadService) {
-        this.discussionThreadService = discussionThreadService;
+    public ThreadController(ThreadService threadService) {
+        this.threadService = threadService;
     }
 
     @PostMapping("/courses/{courseId}/threads")
-    public ResponseEntity<DiscussionThreadDto> createThread(
+    public ResponseEntity<ThreadDto> createThread(
             @PathVariable UUID courseId,
             @RequestBody Map<String, String> body,
             @AuthenticationPrincipal Jwt jwt) {
@@ -49,7 +49,7 @@ public class DiscussionThreadController {
             throw new BadRequestException("Content is required");
         }
 
-        DiscussionThread thread = discussionThreadService.createThread(
+        Thread thread = threadService.createThread(
                 courseId,
                 authorId,
                 title,
@@ -58,6 +58,6 @@ public class DiscussionThreadController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(new DiscussionThreadDto(thread));
+                .body(new ThreadDto(thread));
     }
 }
