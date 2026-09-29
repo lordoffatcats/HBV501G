@@ -60,4 +60,26 @@ public class ThreadController {
                 .status(HttpStatus.CREATED)
                 .body(new ThreadDto(thread));
     }
+
+    @GetMapping("/threads/{id}")
+    public ResponseEntity<ThreadDto> getThread(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+    
+        if (jwt == null || jwt.getSubject() == null) {
+            throw new UnauthorizedException("Invalid token");
+        }
+    
+        UUID viewerId;
+    
+        try {
+            viewerId = UUID.fromString(jwt.getSubject());
+        } catch (IllegalArgumentException exception) {
+            throw new UnauthorizedException("Invalid token");
+        }
+    
+        Thread thread = threadService.getThread(id, viewerId);
+    
+        return ResponseEntity.ok(new ThreadDto(thread));
+    }
 }
