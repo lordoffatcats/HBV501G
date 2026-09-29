@@ -4,4 +4,6 @@ import java.util.UUID;
 
 public interface ThreadService {
     Thread createThread(UUID courseId, UUID authorId, String title, String content);
+
+    Thread getThread(UUID threadId, UUID viewerId);
 }

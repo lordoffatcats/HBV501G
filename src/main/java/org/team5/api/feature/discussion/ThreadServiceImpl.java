@@ -52,4 +52,26 @@ public class ThreadServiceImpl implements ThreadService {
 
         return threadRepository.save(thread);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Thread getThread(UUID threadId, UUID viewerId) {
+        Thread thread = threadRepository.findById(threadId)
+                .orElseThrow(() ->
+                        new NotFoundException("Discussion thread not found")
+                );
+    
+        UUID courseId = thread.getCourse().getId();
+    
+        boolean isCourseMember =
+                courseRepository.existsByIdAndMembersId(courseId,viewerId);
+    
+        if (!isCourseMember) {
+            throw new ForbiddenException(
+                    "You do not have access to this discussion thread"
+            );
+        }
+    
+        return thread;
+    }
 }
