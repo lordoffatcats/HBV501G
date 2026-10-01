@@ -59,7 +59,19 @@ public class ReplyServiceImpl implements ReplyService {
     @Override
     @Transactional
     public Reply updateReply(UUID id, UUID accountId, String content) {
-        return null;
+
+        Reply reply = replyRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Reply not found"));
+
+        if (!reply.getAuthor().getId().equals(accountId)) {
+            throw new ForbiddenException(
+                    "You can only edit your own reply"
+            );
+        }
+
+        reply.setContent(content.trim());
+
+        return replyRepository.save(reply);
     }
 
     @Override

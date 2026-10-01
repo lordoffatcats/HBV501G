@@ -47,10 +47,31 @@ public class ReplyController {
                 .body(new ReplyDto(reply));
     }
 
+    @PatchMapping("/replies/{id}")
     public ResponseEntity<ReplyDto> editReply(
-            UUID id,
-            String content) {
-        return null;
+            @PathVariable UUID id,
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        String subject = jwt.getSubject();
+        if (subject == null) {
+            throw new UnauthorizedException("Invalid token");
+        }
+
+        UUID accountId = UUID.fromString(subject);
+        String content = body.get("content");
+
+        if (content == null || content.isBlank()) {
+            throw new BadRequestException("Content is required");
+        }
+
+        Reply reply = replyService.updateReply(
+                id,
+                accountId,
+                content
+        );
+
+        return ResponseEntity.ok(new ReplyDto(reply));
     }
 
     public ResponseEntity<Void> deleteReply(UUID id) {
