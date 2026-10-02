@@ -74,7 +74,23 @@ public class ReplyController {
         return ResponseEntity.ok(new ReplyDto(reply));
     }
 
-    public ResponseEntity<Void> deleteReply(UUID id) {
-        return null;
+    @DeleteMapping("/replies/{id}")
+    public ResponseEntity<Void> deleteReply(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        String subject = jwt.getSubject();
+        if (subject == null) {
+            throw new UnauthorizedException("Invalid token");
+        }
+
+        UUID accountId = UUID.fromString(subject);
+
+        replyService.deleteReply(
+                id,
+                accountId
+        );
+
+        return ResponseEntity.noContent().build();
     }
 }
