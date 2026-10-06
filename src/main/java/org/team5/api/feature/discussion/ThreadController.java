@@ -68,8 +68,7 @@ public class ThreadController {
     @GetMapping("/threads/{id}")
     public ResponseEntity<ThreadDto> getThread(
             @PathVariable UUID id,
-            @AuthenticationPrincipal Jwt jwt
-    ) {
+            @AuthenticationPrincipal Jwt jwt) {
         if (jwt == null || jwt.getSubject() == null) {
             throw new UnauthorizedException("Invalid token");
         }
@@ -90,8 +89,7 @@ public class ThreadController {
     public ResponseEntity<ThreadDto> editThread(
             @PathVariable UUID id,
             @RequestBody Map<String, String> body,
-            @AuthenticationPrincipal Jwt jwt
-    ) {
+            @AuthenticationPrincipal Jwt jwt) {
         if (jwt == null || jwt.getSubject() == null) {
             throw new UnauthorizedException("Invalid token");
         }
@@ -137,8 +135,7 @@ public class ThreadController {
     @DeleteMapping("/threads/{id}")
     public ResponseEntity<Void> deleteThread(
             @PathVariable UUID id,
-            @AuthenticationPrincipal Jwt jwt
-    ) {
+            @AuthenticationPrincipal Jwt jwt) {
         if (jwt == null || jwt.getSubject() == null) {
             throw new UnauthorizedException("Invalid token");
         }
