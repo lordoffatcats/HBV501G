@@ -14,6 +14,7 @@ import java.util.UUID;
 
 @Service
 public class ReplyServiceImpl implements ReplyService {
+
     private final ReplyRepository replyRepository;
     private final ThreadRepository threadRepository;
     private final AccountRepository accountRepository;
@@ -42,9 +43,7 @@ public class ReplyServiceImpl implements ReplyService {
         UUID courseId = thread.getCourse().getId();
 
         if (!courseRepository.existsByIdAndMembersId(courseId, accountId)) {
-            throw new ForbiddenException(
-                    "You must be a member of the course to reply to this thread"
-            );
+            throw new ForbiddenException("You must be a member of the course to reply to this thread");
         }
 
         Reply reply = new Reply(
@@ -59,14 +58,11 @@ public class ReplyServiceImpl implements ReplyService {
     @Override
     @Transactional
     public Reply updateReply(UUID id, UUID accountId, String content) {
-
         Reply reply = replyRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Reply not found"));
 
         if (!reply.getAuthor().getId().equals(accountId)) {
-            throw new ForbiddenException(
-                    "You can only edit your own reply"
-            );
+            throw new ForbiddenException("You can only edit your own reply");
         }
 
         reply.setContent(content.trim());
@@ -77,14 +73,11 @@ public class ReplyServiceImpl implements ReplyService {
     @Override
     @Transactional
     public void deleteReply(UUID id, UUID accountId) {
-
         Reply reply = replyRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Reply not found"));
 
         if (!reply.getAuthor().getId().equals(accountId)) {
-            throw new ForbiddenException(
-                    "You can only delete your own reply"
-            );
+            throw new ForbiddenException("You can only delete your own reply");
         }
 
         replyRepository.deleteById(id);

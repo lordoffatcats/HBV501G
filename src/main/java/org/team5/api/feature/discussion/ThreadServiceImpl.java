@@ -13,6 +13,7 @@ import java.util.UUID;
 
 @Service
 public class ThreadServiceImpl implements ThreadService {
+
     private final ThreadRepository threadRepository;
     private final CourseRepository courseRepository;
     private final AccountRepository accountRepository;
@@ -21,7 +22,6 @@ public class ThreadServiceImpl implements ThreadService {
             ThreadRepository threadRepository,
             CourseRepository courseRepository,
             AccountRepository accountRepository) {
-
         this.threadRepository = threadRepository;
         this.courseRepository = courseRepository;
         this.accountRepository = accountRepository;
@@ -36,17 +36,13 @@ public class ThreadServiceImpl implements ThreadService {
             String content) {
 
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() ->
-                        new NotFoundException("Course not found"));
+                .orElseThrow(() -> new NotFoundException("Course not found"));
 
         Account author = accountRepository.findById(authorId)
-                .orElseThrow(() ->
-                        new NotFoundException("Account not found"));
+                .orElseThrow(() -> new NotFoundException("Account not found"));
 
         if (!courseRepository.existsByIdAndMembersId(courseId, authorId)) {
-            throw new ForbiddenException(
-                    "You must be a member of the course to create a thread"
-            );
+            throw new ForbiddenException("You must be a member of the course to create a thread");
         }
 
         Thread thread = new Thread(
@@ -64,24 +60,15 @@ public class ThreadServiceImpl implements ThreadService {
     public Thread getThread(UUID threadId, UUID viewerId) {
 
         Thread thread = threadRepository.findById(threadId)
-                .orElseThrow(() ->
-                        new NotFoundException(
-                                "Discussion thread not found"
-                        )
-                );
+                .orElseThrow(() -> new NotFoundException("Discussion thread not found"));
 
         UUID courseId = thread.getCourse().getId();
 
         boolean isCourseMember =
-                courseRepository.existsByIdAndMembersId(
-                        courseId,
-                        viewerId
-                );
+                courseRepository.existsByIdAndMembersId(courseId, viewerId);
 
         if (!isCourseMember) {
-            throw new ForbiddenException(
-                    "You do not have access to this discussion thread"
-            );
+            throw new ForbiddenException("You do not have access to this discussion thread");
         }
 
         return thread;
@@ -96,16 +83,10 @@ public class ThreadServiceImpl implements ThreadService {
             String content) {
 
         Thread thread = threadRepository.findById(threadId)
-                .orElseThrow(() ->
-                        new NotFoundException(
-                                "Discussion thread not found"
-                        )
-                );
+                .orElseThrow(() -> new NotFoundException("Discussion thread not found"));
 
         if (!thread.getAuthor().getId().equals(authorId)) {
-            throw new ForbiddenException(
-                    "You can only edit your own discussion thread"
-            );
+            throw new ForbiddenException("You can only edit your own discussion thread");
         }
 
         if (title != null) {
@@ -126,16 +107,10 @@ public class ThreadServiceImpl implements ThreadService {
             UUID authorId) {
 
         Thread thread = threadRepository.findById(threadId)
-                .orElseThrow(() ->
-                        new NotFoundException(
-                                "Discussion thread not found"
-                        )
-                );
+                .orElseThrow(() -> new NotFoundException("Discussion thread not found"));
 
         if (!thread.getAuthor().getId().equals(authorId)) {
-            throw new ForbiddenException(
-                    "You can only delete your own discussion thread"
-            );
+            throw new ForbiddenException("You can only delete your own discussion thread");
         }
 
         threadRepository.deleteById(threadId);
