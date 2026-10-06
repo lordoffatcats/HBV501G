@@ -3,8 +3,11 @@ package org.team5.api.feature.discussion;
 import jakarta.persistence.*;
 import org.team5.api.feature.account.Account;
 import org.team5.api.feature.course.Course;
+import org.team5.api.feature.reply.Reply;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -28,6 +31,13 @@ public class Thread {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
+
+    @OneToMany(
+            mappedBy = "thread",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Reply> replies = new ArrayList<>();
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
@@ -60,6 +70,10 @@ public class Thread {
 
     public Course getCourse() {
         return course;
+    }
+
+    public List<Reply> getReplies() {
+        return replies;
     }
 
     public Instant getCreatedAt() {

@@ -77,5 +77,16 @@ public class ReplyServiceImpl implements ReplyService {
     @Override
     @Transactional
     public void deleteReply(UUID id, UUID accountId) {
+
+        Reply reply = replyRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Reply not found"));
+
+        if (!reply.getAuthor().getId().equals(accountId)) {
+            throw new ForbiddenException(
+                    "You can only delete your own reply"
+            );
+        }
+
+        replyRepository.deleteById(id);
     }
 }
