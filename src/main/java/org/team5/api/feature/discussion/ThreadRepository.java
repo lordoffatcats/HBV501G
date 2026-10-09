@@ -7,5 +7,8 @@ import java.util.UUID;
 
 public interface ThreadRepository extends Repository<Thread, UUID> {
     Thread save(Thread thread);
+
     Optional<Thread> findById(UUID id);
+
+    void deleteById(UUID id);
 }

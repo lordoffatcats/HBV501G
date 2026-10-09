@@ -13,6 +13,7 @@ import java.util.UUID;
 
 @Service
 public class ThreadServiceImpl implements ThreadService {
+
     private final ThreadRepository threadRepository;
     private final CourseRepository courseRepository;
     private final AccountRepository accountRepository;
@@ -33,6 +34,7 @@ public class ThreadServiceImpl implements ThreadService {
             UUID authorId,
             String title,
             String content) {
+
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new NotFoundException("Course not found"));
 
@@ -56,22 +58,61 @@ public class ThreadServiceImpl implements ThreadService {
     @Override
     @Transactional(readOnly = true)
     public Thread getThread(UUID threadId, UUID viewerId) {
+
         Thread thread = threadRepository.findById(threadId)
-                .orElseThrow(() ->
-                        new NotFoundException("Discussion thread not found")
-                );
-    
+                .orElseThrow(() -> new NotFoundException("Discussion thread not found"));
+
         UUID courseId = thread.getCourse().getId();
-    
+
         boolean isCourseMember =
-                courseRepository.existsByIdAndMembersId(courseId,viewerId);
-    
+                courseRepository.existsByIdAndMembersId(courseId, viewerId);
+
         if (!isCourseMember) {
-            throw new ForbiddenException(
-                    "You do not have access to this discussion thread"
-            );
+            throw new ForbiddenException("You do not have access to this discussion thread");
         }
-    
+
         return thread;
+    }
+
+    @Override
+    @Transactional
+    public Thread updateThread(
+            UUID threadId,
+            UUID authorId,
+            String title,
+            String content) {
+
+        Thread thread = threadRepository.findById(threadId)
+                .orElseThrow(() -> new NotFoundException("Discussion thread not found"));
+
+        if (!thread.getAuthor().getId().equals(authorId)) {
+            throw new ForbiddenException("You can only edit your own discussion thread");
+        }
+
+        if (title != null) {
+            thread.setTitle(title.trim());
+        }
+
+        if (content != null) {
+            thread.setContent(content.trim());
+        }
+
+        return threadRepository.save(thread);
+    }
+
+    @Override
+    @Transactional
+    public void deleteThread(
+            UUID threadId,
+            UUID authorId) {
+
+        Thread thread = threadRepository.findById(threadId)
+                .orElseThrow(() -> new NotFoundException("Discussion thread not found"));
+
+        if (!thread.getAuthor().getId().equals(authorId)) {
+            throw new ForbiddenException("You can only delete your own discussion thread");
+        }
+
+        threadRepository.deleteById(threadId);
     }
 }

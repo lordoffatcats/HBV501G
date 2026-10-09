@@ -1,25 +1,19 @@
-package org.team5.api.feature.discussion;
+package org.team5.api.feature.reply;
 
 import jakarta.persistence.*;
 import org.team5.api.feature.account.Account;
-import org.team5.api.feature.course.Course;
-import org.team5.api.feature.reply.Reply;
+import org.team5.api.feature.discussion.Thread;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "discussion_threads")
-public class Thread {
+@Table(name = "replies")
+public class Reply {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-
-    @Column(nullable = false, length = 100)
-    private String title;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
@@ -29,35 +23,23 @@ public class Thread {
     private Account author;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
-
-    @OneToMany(
-            mappedBy = "thread",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private List<Reply> replies = new ArrayList<>();
+    @JoinColumn(name = "thread_id", nullable = false)
+    private Thread thread;
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
-    public Thread() {}
+    public Reply() {}
 
-    public Thread(String title, String content, Account author, Course course) {
-        this.title = title;
+    public Reply(String content, Account author, Thread thread) {
         this.content = content;
         this.author = author;
-        this.course = course;
+        this.thread = thread;
         this.createdAt = Instant.now();
     }
 
     public UUID getId() {
         return id;
-    }
-
-    public String getTitle() {
-        return title;
     }
 
     public String getContent() {
@@ -68,20 +50,12 @@ public class Thread {
         return author;
     }
 
-    public Course getCourse() {
-        return course;
-    }
-
-    public List<Reply> getReplies() {
-        return replies;
+    public Thread getThread() {
+        return thread;
     }
 
     public Instant getCreatedAt() {
         return createdAt;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
     }
 
     public void setContent(String content) {
@@ -92,7 +66,7 @@ public class Thread {
         this.author = author;
     }
 
-    public void setCourse(Course course) {
-        this.course = course;
+    public void setThread(Thread thread) {
+        this.thread = thread;
     }
 }

@@ -13,6 +13,7 @@ import java.util.UUID;
 
 @RestController
 public class ThreadController {
+
     private final ThreadService threadService;
 
     public ThreadController(ThreadService threadService) {
@@ -23,7 +24,8 @@ public class ThreadController {
     public ResponseEntity<ThreadDto> createThread(
             @PathVariable UUID courseId,
             @RequestBody Map<String, String> body,
-            @AuthenticationPrincipal Jwt jwt) {
+            @AuthenticationPrincipal Jwt jwt
+    ) {
         String subject = jwt.getSubject();
         if (subject == null) {
             throw new UnauthorizedException("Invalid token");
@@ -42,9 +44,11 @@ public class ThreadController {
         if (title == null || title.isBlank()) {
             throw new BadRequestException("Title is required");
         }
+
         if (title.length() > 100) {
             throw new BadRequestException("Title must not exceed 100 characters");
         }
+
         if (content == null || content.isBlank()) {
             throw new BadRequestException("Content is required");
         }
@@ -65,21 +69,86 @@ public class ThreadController {
     public ResponseEntity<ThreadDto> getThread(
             @PathVariable UUID id,
             @AuthenticationPrincipal Jwt jwt) {
-    
         if (jwt == null || jwt.getSubject() == null) {
             throw new UnauthorizedException("Invalid token");
         }
-    
+
         UUID viewerId;
-    
         try {
             viewerId = UUID.fromString(jwt.getSubject());
         } catch (IllegalArgumentException exception) {
             throw new UnauthorizedException("Invalid token");
         }
-    
+
         Thread thread = threadService.getThread(id, viewerId);
-    
+
         return ResponseEntity.ok(new ThreadDto(thread));
+    }
+
+    @PatchMapping("/threads/{id}")
+    public ResponseEntity<ThreadDto> editThread(
+            @PathVariable UUID id,
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal Jwt jwt) {
+        if (jwt == null || jwt.getSubject() == null) {
+            throw new UnauthorizedException("Invalid token");
+        }
+
+        UUID authorId;
+        try {
+            authorId = UUID.fromString(jwt.getSubject());
+        } catch (IllegalArgumentException exception) {
+            throw new UnauthorizedException("Invalid token");
+        }
+
+        String title = body.get("title");
+        String content = body.get("content");
+
+        if (title == null && content == null) {
+            throw new BadRequestException("Title or content is required");
+        }
+
+        if (title != null) {
+            if (title.isBlank()) {
+                throw new BadRequestException("Title is required");
+            }
+
+            if (title.length() > 100) {
+                throw new BadRequestException("Title must not exceed 100 characters");
+            }
+        }
+
+        if (content != null && content.isBlank()) {
+            throw new BadRequestException("Content is required");
+        }
+
+        Thread thread = threadService.updateThread(
+                id,
+                authorId,
+                title,
+                content
+        );
+
+        return ResponseEntity.ok(new ThreadDto(thread));
+    }
+
+    @DeleteMapping("/threads/{id}")
+    public ResponseEntity<Void> deleteThread(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+        if (jwt == null || jwt.getSubject() == null) {
+            throw new UnauthorizedException("Invalid token");
+        }
+
+        UUID authorId;
+        try {
+            authorId = UUID.fromString(jwt.getSubject());
+        } catch (IllegalArgumentException exception) {
+            throw new UnauthorizedException("Invalid token");
+        }
+
+        threadService.deleteThread(id, authorId);
+
+        return ResponseEntity.noContent().build();
     }
 }
