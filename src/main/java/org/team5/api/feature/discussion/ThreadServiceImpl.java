@@ -1,5 +1,7 @@
 package org.team5.api.feature.discussion;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.team5.api.exceptions.ForbiddenException;
@@ -114,5 +116,11 @@ public class ThreadServiceImpl implements ThreadService {
         }
 
         threadRepository.deleteById(threadId);
+    }
+
+    @Override
+    public Page<ThreadDto> getThreads(Pageable pageable) {
+        Page<Thread> threadPage = threadRepository.findAll(pageable);
+        return threadPage.map(ThreadDto::new);
     }
 }
