@@ -53,9 +53,9 @@ public class AccountController {
         return ResponseEntity.ok(token);
     }
 
-    @PatchMapping("/account")
+    @PatchMapping("/accounts")
     public ResponseEntity<ExtendedAccountDto> editAccount(
-            @RequestBody ExtendedAccountDto patchAccount,
+            @RequestBody UpdateAccountRequest request,
             @AuthenticationPrincipal Jwt jwt) {
         String subject = jwt.getSubject();
         if (subject == null) {
@@ -63,17 +63,17 @@ public class AccountController {
         }
 
         UUID userId = UUID.fromString(subject);
-        if (!userId.equals(patchAccount.getId())) {
-            throw new UnauthorizedException("Authenticated users Id does not match target resource.");
+        if (request.email().isEmpty()) {
+            throw new BadRequestException("Email is required");
         }
 
-        Account updatedAccount = accountService.updateAccount(userId, patchAccount);
+        Account updatedAccount = accountService.updateAccount(userId, request);
         ExtendedAccountDto result = new ExtendedAccountDto(updatedAccount);
         return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/accounts/{id}")
-    public void deleteAccount(UUID id) {
+    public void deleteAccount(@PathVariable UUID id) {
         // TODO:
         return;
     }
@@ -104,7 +104,7 @@ public class AccountController {
     }
 
 
-    @GetMapping("/account")
+    @GetMapping("/accounts")
     public ExtendedAccountDto getAccount() {
         // TODO: get users own account
         return null;
@@ -123,7 +123,7 @@ public class AccountController {
     }
 
     @PutMapping(
-            value = "account/profile-picture",
+            value = "accounts/profile-picture",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE //takes in an image file
     )
     public ExtendedAccountDto uploadProfilePicture(UUID id, byte[] profilePicture) {
