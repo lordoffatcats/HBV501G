@@ -6,6 +6,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.team5.api.exceptions.BadRequestException;
 import org.team5.api.exceptions.ForbiddenException;
+import org.team5.api.exceptions.UnauthorizedException;
 
 import java.util.Map;
 import java.util.UUID;
@@ -39,7 +40,7 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
-    @PostMapping("/accounts/signin")
+    @PostMapping("/accounts/tokens")
     public ResponseEntity<String> signIn(@RequestBody Map<String, String> body) {
         String username = body.get("username");
         String password = body.get("password");
@@ -52,24 +53,37 @@ public class AccountController {
         return ResponseEntity.ok(token);
     }
 
-    @PatchMapping("/accounts/")
-    public ExtendedAccountDto editAccount(UUID id, Account account) {
-        // TODO:
-        return null;
+    @PatchMapping("/accounts")
+    public ResponseEntity<ExtendedAccountDto> editAccount(
+            @RequestBody UpdateAccountRequest request,
+            @AuthenticationPrincipal Jwt jwt) {
+        String subject = jwt.getSubject();
+        if (subject == null) {
+            throw new UnauthorizedException("Invalid token.");
+        }
+
+        UUID userId = UUID.fromString(subject);
+        if (request.email().isEmpty()) {
+            throw new BadRequestException("Email is required");
+        }
+
+        Account updatedAccount = accountService.updateAccount(userId, request);
+        ExtendedAccountDto result = new ExtendedAccountDto(updatedAccount);
+        return ResponseEntity.ok(result);
     }
 
-    @DeleteMapping("/account")
-    public void deleteAccount(UUID id) {
+    @DeleteMapping("/accounts/{id}")
+    public void deleteAccount(@PathVariable UUID id) {
         // TODO:
         return;
     }
 
-    @PostMapping("/accounts/admin")
+    @PostMapping("/accounts/admins")
     public ResponseEntity<ExtendedAccountDto> createAdminAccount(
             @RequestBody Map<String, String> body,
             @AuthenticationPrincipal Jwt jwt) {
         if (!Boolean.TRUE.equals(jwt.getClaim("isAdmin"))) {
-            throw new ForbiddenException("You do not have permission to perform this action");
+            throw new ForbiddenException("You do not have permission to perform this action.");
         }
 
         String email = body.get("email");
@@ -90,30 +104,30 @@ public class AccountController {
     }
 
 
-    @GetMapping("/account")
+    @GetMapping("/accounts")
     public ExtendedAccountDto getAccount() {
-        // TODO:
+        // TODO: get users own account
         return null;
     }
 
     @GetMapping("/accounts/{id}")
     public ExtendedAccountDto getAccountAsAdmin(UUID id) {
-        // TODO:
+        // TODO: as admin get a users account by id
         return null;
     }
 
-    @PatchMapping("accounts/{id}")
+    @PatchMapping("/accounts/{id}")
     public ExtendedAccountDto editAccountAsAdmin(UUID id, Account account) {
-        // TODO:
+        // TODO: as admin update users account by id
         return null;
     }
 
     @PutMapping(
-            value = "/account/profile-picture",
+            value = "accounts/profile-picture",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE //takes in an image file
     )
     public ExtendedAccountDto uploadProfilePicture(UUID id, byte[] profilePicture) {
-        // TODO:
+        // TODO: update a
         return null;
     }
 }

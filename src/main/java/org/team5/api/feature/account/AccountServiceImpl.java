@@ -6,6 +6,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 import org.team5.api.exceptions.ConflictException;
+import org.team5.api.exceptions.NotFoundException;
 import org.team5.api.exceptions.UnauthorizedException;
 
 import java.time.Instant;
@@ -70,9 +71,15 @@ public class AccountServiceImpl  implements AccountService {
         return null;
     }
 
-    public Account updateAccount(UUID id, String email) {
-        // TODO:
-        return null;
+    public Account updateAccount(UUID id, UpdateAccountRequest request) {
+        Account existingAccount = accountRepository.findById(id)
+                .orElseThrow( () -> new NotFoundException("Account no found with id: " + id));
+
+        if (request.email() != null) {
+            existingAccount.setEmail(request.email());
+        }
+
+        return accountRepository.save(existingAccount);
     }
 
     public void deleteAccount(UUID id) {
