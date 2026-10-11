@@ -2,6 +2,7 @@ package org.team5.api.feature.discussion;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.team5.api.exceptions.BadRequestException;
+import org.team5.api.exceptions.ForbiddenException;
 import org.team5.api.exceptions.UnauthorizedException;
 
 import java.util.Map;
@@ -155,17 +157,17 @@ public class ThreadController {
         return ResponseEntity.noContent().build();
     }
 
-    /*1. The user sends a request for discussion threads in a course, optionally including search, filtering,
-        sorting, and pagination parameters.
-    2. The system verifies that the authenticated user has access to the course.
-    3. The system validates the supplied query parameters.
-    4. The system retrieves matching discussion threads.
-    5. The system returns a paginated response containing the matching threads.
-    * */
     @GetMapping("/threads")
     public ResponseEntity<Page<ThreadDto>> getAllThreads(
-            @PageableDefault(size=10) Pageable pageable) {
-        Page<ThreadDto> threads = threadService.getThreads(pageable);
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) UUID courseId,
+            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @AuthenticationPrincipal Jwt jwt) {
+        if (courseId == null && !Boolean.TRUE.equals(jwt.getClaim("isAdmin"))) {
+            throw new ForbiddenException("You are required to provide a course id");
+        }
+
+        Page<ThreadDto> threads = threadService.getThreads(pageable, query, courseId);
         return ResponseEntity.ok(threads);
     }
 

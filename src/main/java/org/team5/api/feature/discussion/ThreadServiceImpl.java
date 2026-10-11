@@ -2,6 +2,7 @@ package org.team5.api.feature.discussion;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.team5.api.exceptions.ForbiddenException;
@@ -119,8 +120,12 @@ public class ThreadServiceImpl implements ThreadService {
     }
 
     @Override
-    public Page<ThreadDto> getThreads(Pageable pageable) {
-        Page<Thread> threadPage = threadRepository.findAll(pageable);
+    public Page<ThreadDto> getThreads(Pageable pageable, String query, UUID courseId) {
+        Specification<Thread> spec = Specification
+            .where(ThreadSpecifications.search(query))
+            .and(ThreadSpecifications.hasCourseId(courseId));
+
+        Page<Thread> threadPage = threadRepository.findAll(spec, pageable);
         return threadPage.map(ThreadDto::new);
     }
 }
