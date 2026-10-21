@@ -8,7 +8,7 @@ import org.team5.api.exceptions.BadRequestException;
 import org.team5.api.exceptions.ForbiddenException;
 import org.team5.api.exceptions.UnauthorizedException;
 
-import java.util.Map;
+import java.util.Base64;
 import java.util.UUID;
 
 @RestController
@@ -20,10 +20,11 @@ public class AccountController {
     }
 
     @PostMapping("/accounts")
-    public ResponseEntity<ExtendedAccountDto> createAccount(@RequestBody Map<String, String> body) {
-        String email = body.get("email");
-        String username = body.get("username");
-        String password = body.get("password");
+    public ResponseEntity<ExtendedAccountDto> createAccount(
+            @RequestBody CreateAccountRequest request) {
+        String email = request.email();
+        String username = request.username();
+        String password = request.password();
 
         if (email == null || email.isBlank() || username == null || username.isBlank() || password == null || password.isBlank()) {
             throw new BadRequestException("Email, username and password are required");
@@ -41,9 +42,9 @@ public class AccountController {
     }
 
     @PostMapping("/accounts/tokens")
-    public ResponseEntity<String> signIn(@RequestBody Map<String, String> body) {
-        String username = body.get("username");
-        String password = body.get("password");
+    public ResponseEntity<String> signIn(@RequestBody SignInRequest request) {
+        String username = request.username();
+        String password = request.password();
         if (username == null || username.isBlank() || password == null || password.isBlank()) {
             throw new BadRequestException("Username and password are required");
         }
@@ -73,22 +74,33 @@ public class AccountController {
     }
 
     @DeleteMapping("/accounts/{id}")
-    public void deleteAccount(@PathVariable UUID id) {
-        // TODO:
-        return;
+    public ResponseEntity<Void> deleteAccount(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+        String subject = jwt.getSubject();
+
+        if(subject==null) {
+            throw new UnauthorizedException("Invalid token.");
+        }
+        if(!UUID.fromString(subject).equals(id)) {
+            throw new UnauthorizedException("You do not have permission to delete id: "+ id);
+        }
+        accountService.deleteAccount(id);
+
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/accounts/admins")
     public ResponseEntity<ExtendedAccountDto> createAdminAccount(
-            @RequestBody Map<String, String> body,
+            @RequestBody CreateAccountRequest request,
             @AuthenticationPrincipal Jwt jwt) {
         if (!Boolean.TRUE.equals(jwt.getClaim("isAdmin"))) {
             throw new ForbiddenException("You do not have permission to perform this action.");
         }
 
-        String email = body.get("email");
-        String username = body.get("username");
-        String password = body.get("password");
+        String email = request.email();
+        String username = request.username();
+        String password = request.password();
         if (email == null || email.isBlank() || username == null || username.isBlank() || password == null || password.isBlank()) {
             throw new BadRequestException("Email, username and password are required");
         }
@@ -105,28 +117,53 @@ public class AccountController {
 
 
     @GetMapping("/accounts")
-    public ExtendedAccountDto getAccount() {
-        // TODO: get users own account
-        return null;
+    public ResponseEntity<ExtendedAccountDto> getAccount(@AuthenticationPrincipal Jwt jwt) {
+        String subject = jwt.getSubject();
+        if(subject==null) {
+            throw new UnauthorizedException("Invalid token.");
+        }
+        Account account = accountService.getAccount(UUID.fromString(subject));
+        ExtendedAccountDto accountDto = new ExtendedAccountDto(account);
+        return ResponseEntity.ok(accountDto);
     }
 
     @GetMapping("/accounts/{id}")
-    public ExtendedAccountDto getAccountAsAdmin(UUID id) {
-        // TODO: as admin get a users account by id
-        return null;
+    public ResponseEntity<ExtendedAccountDto> getAccountAsAdmin(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        if (!Boolean.TRUE.equals(jwt.getClaim("isAdmin"))) {
+            throw new ForbiddenException("You do not have permission to perform this action.");
+        }
+        Account account = accountService.getAccount(id);
+        ExtendedAccountDto accountDto = new ExtendedAccountDto(account);
+        return ResponseEntity.ok(accountDto);
     }
 
     @PatchMapping("/accounts/{id}")
-    public ExtendedAccountDto editAccountAsAdmin(UUID id, Account account) {
-        // TODO: as admin update users account by id
-        return null;
+    public ResponseEntity<ExtendedAccountDto> editAccountAsAdmin(
+            @PathVariable UUID id,
+            @RequestBody UpdateAccountRequest request,
+            @AuthenticationPrincipal Jwt jwt) {
+        if (!Boolean.TRUE.equals(jwt.getClaim("isAdmin"))) {
+            throw new ForbiddenException("You do not have permission to perform this action.");
+        }
+        String subject = jwt.getSubject();
+        if (subject == null) {
+            throw new UnauthorizedException("Invalid token.");
+        }
+
+        if (request.email().isEmpty()) {
+            throw new BadRequestException("Email is required");
+        }
+
+        Account updatedAccount = accountService.updateAccount(id, request);
+        ExtendedAccountDto result = new ExtendedAccountDto(updatedAccount);
+        return ResponseEntity.ok(result);
     }
 
     @PutMapping(
             value = "accounts/profile-picture",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE //takes in an image file
     )
-    public ExtendedAccountDto uploadProfilePicture(UUID id, byte[] profilePicture) {
+    public ExtendedAccountDto uploadProfilePicture(UUID id, Base64 profilePicture) {
         // TODO: update a
         return null;
     }

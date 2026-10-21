@@ -36,12 +36,12 @@
 | 4            | Create Account                    | ☑         |
 | 5            | Sign In                           | ☑         |
 | 6            | Edit Account Details              | ☑         |
-| 7            | Delete Account                    | ☐         |
+| 7            | Delete Account                    | ☑         |
 | 8            | Create Admin Account              | ☑         |
-| 9            | Edit User Account as Admin        | ☐         |
+| 9            | Edit User Account as Admin        | ☑         |
 | 10           | View Discussion Thread            | ☑         |
 | 11           | View Discussions by User          | ☐         |
-| 12           | View User Profile as Admin        | ☐         |
+| 12           | View User Profile as Admin        | ☑         |
 | 13           | Delete Discussion Thread          | ☑         |
 | 14           | Delete Discussion Thread as Admin | ☐         |
 | 15           | Edit Discussion Thread            | ☑         |

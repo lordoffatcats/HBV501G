@@ -1,5 +1,6 @@
 package org.team5.api.feature.account;
 
+import java.util.Base64;
 import java.util.UUID;
 
 public interface AccountService {
@@ -8,5 +9,5 @@ public interface AccountService {
     Account getAccount(UUID id);
     Account updateAccount(UUID id, UpdateAccountRequest request);
     void deleteAccount(UUID id);
-    Account updateProfilePicture(UUID id, byte[] profilePicture);
+    Account updateProfilePicture(UUID id, Base64 profilePicture);
 }

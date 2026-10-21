@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.team5.api.feature.course.Course;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,7 +22,7 @@ public class Account {
 
     private boolean isAdmin;
 
-    private byte[] profilePicture;
+    private Base64 profilePicture;
 
     @ManyToMany(mappedBy = "members")
     private List<Course> courses = new ArrayList<>();
@@ -44,7 +45,7 @@ public class Account {
 
     public boolean isAdmin() { return this.isAdmin; }
 
-    public byte[] getProfilePicture() {
+    public Base64 getProfilePicture() {
         return this.profilePicture;
     }
 

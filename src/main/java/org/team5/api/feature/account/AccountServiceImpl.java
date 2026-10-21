@@ -11,6 +11,7 @@ import org.team5.api.exceptions.UnauthorizedException;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -67,8 +68,8 @@ public class AccountServiceImpl  implements AccountService {
     }
 
     public Account getAccount(UUID id) {
-        // TODO:
-        return null;
+        return accountRepository.findById(id)
+                .orElseThrow( () -> new NotFoundException("Account no found with id: " + id));
     }
 
     public Account updateAccount(UUID id, UpdateAccountRequest request) {
@@ -83,10 +84,10 @@ public class AccountServiceImpl  implements AccountService {
     }
 
     public void deleteAccount(UUID id) {
-        // TODO:
+        accountRepository.deleteById(id);
     }
 
-    public Account updateProfilePicture(UUID id, byte[] profilePicture) {
+    public Account updateProfilePicture(UUID id, Base64 profilePicture) {
         // TODO:
         return null;
     }
