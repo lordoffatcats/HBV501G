@@ -1,5 +1,6 @@
 package org.team5.api.feature.reply;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,7 +23,7 @@ public class ReplyController {
     @PostMapping("/threads/{threadId}/replies")
     public ResponseEntity<ReplyDto> createReply(
             @PathVariable UUID threadId,
-            @RequestBody Map<String, String> body,
+            @CookieValue @RequestBody CreateReplyRequest request,
             @AuthenticationPrincipal Jwt jwt) {
         String subject = jwt.getSubject();
         if (subject == null) {
@@ -30,27 +31,21 @@ public class ReplyController {
         }
 
         UUID accountId = UUID.fromString(subject);
-        String content = body.get("content");
-
-        if (content == null || content.isBlank()) {
-            throw new BadRequestException("Content is required");
-        }
-
         Reply reply = replyService.createReply(
-                threadId,
-                accountId,
-                content
+            threadId,
+            accountId,
+            request.content
         );
 
         return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(new ReplyDto(reply));
+            .status(HttpStatus.CREATED)
+            .body(new ReplyDto(reply));
     }
 
     @PatchMapping("/replies/{id}")
     public ResponseEntity<ReplyDto> editReply(
             @PathVariable UUID id,
-            @RequestBody Map<String, String> body,
+            @Valid @RequestBody UpdateReplyRequest request,
             @AuthenticationPrincipal Jwt jwt) {
 
         String subject = jwt.getSubject();
@@ -59,16 +54,10 @@ public class ReplyController {
         }
 
         UUID accountId = UUID.fromString(subject);
-        String content = body.get("content");
-
-        if (content == null || content.isBlank()) {
-            throw new BadRequestException("Content is required");
-        }
-
         Reply reply = replyService.updateReply(
-                id,
-                accountId,
-                content
+            id,
+            accountId,
+            request.content
         );
 
         return ResponseEntity.ok(new ReplyDto(reply));
@@ -85,12 +74,7 @@ public class ReplyController {
         }
 
         UUID accountId = UUID.fromString(subject);
-
-        replyService.deleteReply(
-                id,
-                accountId
-        );
-
+        replyService.deleteReply(id, accountId);
         return ResponseEntity.noContent().build();
     }
 }

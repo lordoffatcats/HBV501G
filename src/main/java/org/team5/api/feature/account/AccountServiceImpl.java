@@ -71,12 +71,12 @@ public class AccountServiceImpl  implements AccountService {
         return null;
     }
 
-    public Account updateAccount(UUID id, UpdateAccountRequest request) {
+    public Account updateAccount(UUID id, String email) {
         Account existingAccount = accountRepository.findById(id)
                 .orElseThrow( () -> new NotFoundException("Account no found with id: " + id));
 
-        if (request.email() != null) {
-            existingAccount.setEmail(request.email());
+        if (email != null) {
+            existingAccount.setEmail(email);
         }
 
         return accountRepository.save(existingAccount);

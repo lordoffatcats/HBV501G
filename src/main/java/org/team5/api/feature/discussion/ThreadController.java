@@ -1,5 +1,6 @@
 package org.team5.api.feature.discussion;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -28,7 +29,7 @@ public class ThreadController {
     @PostMapping("/courses/{courseId}/threads")
     public ResponseEntity<ThreadDto> createThread(
             @PathVariable UUID courseId,
-            @RequestBody Map<String, String> body,
+            @Valid @RequestBody CreateThreadRequest request,
             @AuthenticationPrincipal Jwt jwt
     ) {
         String subject = jwt.getSubject();
@@ -43,31 +44,16 @@ public class ThreadController {
             throw new UnauthorizedException("Invalid token");
         }
 
-        String title = body.get("title");
-        String content = body.get("content");
-
-        if (title == null || title.isBlank()) {
-            throw new BadRequestException("Title is required");
-        }
-
-        if (title.length() > 100) {
-            throw new BadRequestException("Title must not exceed 100 characters");
-        }
-
-        if (content == null || content.isBlank()) {
-            throw new BadRequestException("Content is required");
-        }
-
         Thread thread = threadService.createThread(
-                courseId,
-                authorId,
-                title,
-                content
+            courseId,
+            authorId,
+            request.title,
+            request.content
         );
 
         return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(new ThreadDto(thread));
+            .status(HttpStatus.CREATED)
+            .body(new ThreadDto(thread));
     }
 
     @GetMapping("/threads/{id}")
@@ -93,7 +79,7 @@ public class ThreadController {
     @PatchMapping("/threads/{id}")
     public ResponseEntity<ThreadDto> editThread(
             @PathVariable UUID id,
-            @RequestBody Map<String, String> body,
+            @Valid @RequestBody UpdateThreadRequest request,
             @AuthenticationPrincipal Jwt jwt) {
         if (jwt == null || jwt.getSubject() == null) {
             throw new UnauthorizedException("Invalid token");
@@ -106,32 +92,11 @@ public class ThreadController {
             throw new UnauthorizedException("Invalid token");
         }
 
-        String title = body.get("title");
-        String content = body.get("content");
-
-        if (title == null && content == null) {
-            throw new BadRequestException("Title or content is required");
-        }
-
-        if (title != null) {
-            if (title.isBlank()) {
-                throw new BadRequestException("Title is required");
-            }
-
-            if (title.length() > 100) {
-                throw new BadRequestException("Title must not exceed 100 characters");
-            }
-        }
-
-        if (content != null && content.isBlank()) {
-            throw new BadRequestException("Content is required");
-        }
-
         Thread thread = threadService.updateThread(
-                id,
-                authorId,
-                title,
-                content
+            id,
+            authorId,
+            request.title,
+            request.content
         );
 
         return ResponseEntity.ok(new ThreadDto(thread));
@@ -153,7 +118,6 @@ public class ThreadController {
         }
 
         threadService.deleteThread(id, authorId);
-
         return ResponseEntity.noContent().build();
     }
 
