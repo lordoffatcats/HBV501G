@@ -6,12 +6,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-import org.team5.api.exceptions.BadRequestException;
 import org.team5.api.exceptions.ForbiddenException;
-import org.team5.api.exceptions.UnauthorizedException;
+import org.team5.api.feature.SubjectExtractor;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -39,12 +37,7 @@ public class CourseController {
             @PathVariable UUID id,
             @Valid @RequestBody JoinCourseRequest request,
             @AuthenticationPrincipal Jwt jwt) {
-        String subject = jwt.getSubject();
-        if (subject == null) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
-        UUID userId = UUID.fromString(subject);
+        UUID userId = SubjectExtractor.GetSubject(jwt);
         courseService.joinCourse(id, userId, request.joinCode);
         return ResponseEntity.noContent().build();
     }
@@ -53,24 +46,14 @@ public class CourseController {
     public ResponseEntity<Void> leaveCourse(
             @PathVariable UUID id,
             @AuthenticationPrincipal Jwt jwt) {
-        String subject = jwt.getSubject();
-        if (subject == null) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
-        UUID userId = UUID.fromString(subject);
+        UUID userId = SubjectExtractor.GetSubject(jwt);
         courseService.leaveCourse(id, userId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/courses/mine")
     public ResponseEntity<List<CourseDto>> getUserCourses(@AuthenticationPrincipal Jwt jwt) {
-        String subject = jwt.getSubject();
-        if (subject == null) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
-        UUID userId = UUID.fromString(subject);
+        UUID userId = SubjectExtractor.GetSubject(jwt);
         List<CourseDto> courses = courseService.getUserCourses(userId)
             .stream()
             .map(CourseDto::new)

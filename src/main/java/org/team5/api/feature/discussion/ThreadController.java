@@ -10,11 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-import org.team5.api.exceptions.BadRequestException;
 import org.team5.api.exceptions.ForbiddenException;
-import org.team5.api.exceptions.UnauthorizedException;
+import org.team5.api.feature.SubjectExtractor;
 
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -32,18 +30,7 @@ public class ThreadController {
             @Valid @RequestBody CreateThreadRequest request,
             @AuthenticationPrincipal Jwt jwt
     ) {
-        String subject = jwt.getSubject();
-        if (subject == null) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
-        UUID authorId;
-        try {
-            authorId = UUID.fromString(subject);
-        } catch (IllegalArgumentException exception) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
+        UUID authorId = SubjectExtractor.GetSubject(jwt);
         Thread thread = threadService.createThread(
             courseId,
             authorId,
@@ -60,19 +47,8 @@ public class ThreadController {
     public ResponseEntity<ThreadDto> getThread(
             @PathVariable UUID id,
             @AuthenticationPrincipal Jwt jwt) {
-        if (jwt == null || jwt.getSubject() == null) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
-        UUID viewerId;
-        try {
-            viewerId = UUID.fromString(jwt.getSubject());
-        } catch (IllegalArgumentException exception) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
+        UUID viewerId = SubjectExtractor.GetSubject(jwt);
         Thread thread = threadService.getThread(id, viewerId);
-
         return ResponseEntity.ok(new ThreadDto(thread));
     }
 
@@ -81,17 +57,7 @@ public class ThreadController {
             @PathVariable UUID id,
             @Valid @RequestBody UpdateThreadRequest request,
             @AuthenticationPrincipal Jwt jwt) {
-        if (jwt == null || jwt.getSubject() == null) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
-        UUID authorId;
-        try {
-            authorId = UUID.fromString(jwt.getSubject());
-        } catch (IllegalArgumentException exception) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
+        UUID authorId = SubjectExtractor.GetSubject(jwt);
         Thread thread = threadService.updateThread(
             id,
             authorId,
@@ -106,17 +72,7 @@ public class ThreadController {
     public ResponseEntity<Void> deleteThread(
             @PathVariable UUID id,
             @AuthenticationPrincipal Jwt jwt) {
-        if (jwt == null || jwt.getSubject() == null) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
-        UUID authorId;
-        try {
-            authorId = UUID.fromString(jwt.getSubject());
-        } catch (IllegalArgumentException exception) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
+        UUID authorId = SubjectExtractor.GetSubject(jwt);
         threadService.deleteThread(id, authorId);
         return ResponseEntity.noContent().build();
     }

@@ -6,10 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-import org.team5.api.exceptions.BadRequestException;
-import org.team5.api.exceptions.UnauthorizedException;
+import org.team5.api.feature.SubjectExtractor;
 
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -25,12 +23,7 @@ public class ReplyController {
             @PathVariable UUID threadId,
             @CookieValue @RequestBody CreateReplyRequest request,
             @AuthenticationPrincipal Jwt jwt) {
-        String subject = jwt.getSubject();
-        if (subject == null) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
-        UUID accountId = UUID.fromString(subject);
+        UUID accountId = SubjectExtractor.GetSubject(jwt);
         Reply reply = replyService.createReply(
             threadId,
             accountId,
@@ -47,13 +40,7 @@ public class ReplyController {
             @PathVariable UUID id,
             @Valid @RequestBody UpdateReplyRequest request,
             @AuthenticationPrincipal Jwt jwt) {
-
-        String subject = jwt.getSubject();
-        if (subject == null) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
-        UUID accountId = UUID.fromString(subject);
+        UUID accountId = SubjectExtractor.GetSubject(jwt);
         Reply reply = replyService.updateReply(
             id,
             accountId,
@@ -67,13 +54,7 @@ public class ReplyController {
     public ResponseEntity<Void> deleteReply(
             @PathVariable UUID id,
             @AuthenticationPrincipal Jwt jwt) {
-
-        String subject = jwt.getSubject();
-        if (subject == null) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
-        UUID accountId = UUID.fromString(subject);
+        UUID accountId = SubjectExtractor.GetSubject(jwt);
         replyService.deleteReply(id, accountId);
         return ResponseEntity.noContent().build();
     }

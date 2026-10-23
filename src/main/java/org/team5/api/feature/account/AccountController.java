@@ -5,11 +5,9 @@ import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-import org.team5.api.exceptions.BadRequestException;
 import org.team5.api.exceptions.ForbiddenException;
-import org.team5.api.exceptions.UnauthorizedException;
+import org.team5.api.feature.SubjectExtractor;
 
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -45,12 +43,7 @@ public class AccountController {
     public ResponseEntity<ExtendedAccountDto> editAccount(
             @Valid @RequestBody UpdateAccountRequest request,
             @AuthenticationPrincipal Jwt jwt) {
-        String subject = jwt.getSubject();
-        if (subject == null) {
-            throw new UnauthorizedException("Invalid token.");
-        }
-
-        UUID userId = UUID.fromString(subject);
+        UUID userId = SubjectExtractor.GetSubject(jwt);
         Account updatedAccount = accountService.updateAccount(userId, request.email);
         ExtendedAccountDto result = new ExtendedAccountDto(updatedAccount);
         return ResponseEntity.ok(result);
@@ -59,7 +52,6 @@ public class AccountController {
     @DeleteMapping("/accounts/{id}")
     public void deleteAccount(@PathVariable UUID id) {
         // TODO:
-        return;
     }
 
     @PostMapping("/accounts/admins")
