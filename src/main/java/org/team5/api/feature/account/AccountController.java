@@ -5,9 +5,11 @@ import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.team5.api.exceptions.BadRequestException;
 import org.team5.api.exceptions.ForbiddenException;
 import org.team5.api.feature.SubjectExtractor;
 
+import java.util.Base64;
 import java.util.UUID;
 
 @RestController
@@ -93,12 +95,20 @@ public class AccountController {
         return null;
     }
 
-    @PutMapping(
-            value = "accounts/profile-picture",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE //takes in an image file
-    )
-    public ExtendedAccountDto uploadProfilePicture(UUID id, byte[] profilePicture) {
-        // TODO: update a
-        return null;
+    @PostMapping("/accounts/profile-picture")
+    public ResponseEntity<ExtendedAccountDto> uploadProfilePicture(
+            @Valid @RequestBody UploadProfilePictureRequest request,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = SubjectExtractor.GetSubject(jwt);
+        byte[] imageBytes;
+
+        try {
+            imageBytes = Base64.getDecoder().decode(request.profilePicture);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Invalid Base64 image");
+        }
+
+        ExtendedAccountDto result = new ExtendedAccountDto(accountService.updateProfilePicture(userId, imageBytes));
+        return ResponseEntity.ok(result);
     }
 }

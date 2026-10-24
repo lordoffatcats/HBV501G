@@ -21,7 +21,7 @@
 | 7    | ~~13, 15, 22, 23~~ | 2          |                     |
 | 8    | ~~6, 20, 3~~       | 2          |                     |
 | 9    | 11, 14, 16         | 3          | **A3 presentation** |
-| 10   | 9, 17              | 3          |                     |
+| 10   | 9, ~~17~~          | 3          |                     |
 | 11   | 7, 12              | 3          |                     |
 | 12   | Buffer             | 4          | **A4 presentation** |
 | 13   | Deployment         | 4          |                     |
@@ -46,7 +46,7 @@
 | 14           | Delete Discussion Thread as Admin | ☐         |
 | 15           | Edit Discussion Thread            | ☑         |
 | 16           | Edit Discussion Thread as Admin   | ☐         |
-| 17           | Upload Profile Picture            | ☐         |
+| 17           | Upload Profile Picture            | ☑         |
 | 18           | Create Course                     | ☑         |
 | 19           | Join Course                       | ☑         |
 | 20           | Leave Course                      | ☑         |

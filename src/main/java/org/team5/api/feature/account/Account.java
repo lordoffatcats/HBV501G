@@ -48,12 +48,12 @@ public class Account {
         return this.profilePicture;
     }
 
-    public List<Course> getCourses() {
-        return this.courses;
-    }
-
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public void setProfilePicture(byte[] profilePicture) {
+        this.profilePicture = profilePicture;
     }
 
     public Account() {}
