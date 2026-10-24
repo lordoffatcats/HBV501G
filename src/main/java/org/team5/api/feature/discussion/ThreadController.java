@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.team5.api.exceptions.ForbiddenException;
 import org.team5.api.feature.SubjectExtractor;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -83,7 +84,17 @@ public class ThreadController {
             @RequestParam(required = false) UUID courseId,
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal Jwt jwt) {
-        if (courseId == null && !Boolean.TRUE.equals(jwt.getClaim("isAdmin"))) {
+
+        /* Todo: Breytti þessu vegna þess að ég breytti token generationinu.
+            þetta er algjört skítamix hjá mér til að laga ekki admin Jwt tjékkið.
+            Veit samt ekki hvers vegna þetta if tjékk er gert.
+            Hvers vegna að leyfa admin gera courseId=null ??????
+            Nú veit ég ekki hvernig þetta pageable stuff virkar, en getThreads
+            gerir hasCourseId(null) þá. Veit ekki hvort það errorar eða gerir eih gagnlegt.
+         */
+        List<String> roles = jwt.getClaimAsStringList("roles");
+        boolean isAdmin = roles != null && roles.contains("ADMIN");
+        if (courseId == null && !isAdmin) {
             throw new ForbiddenException("You are required to provide a course id");
         }
 

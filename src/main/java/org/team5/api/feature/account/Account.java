@@ -9,6 +9,13 @@ import java.util.UUID;
 
 @Entity
 public class Account {
+    /* TODO: Role er enum, en Jwt stuffið styður í raun mörg roles per Account.
+     *  Veit bara ekki hvernig er best að útfæra þetta á þessu stigi.
+    */
+    public enum Role {
+        ROLE_USER,
+        ROLE_ADMIN
+    }
 
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -19,7 +26,8 @@ public class Account {
 
     private String password;
 
-    private boolean isAdmin;
+    @ManyToOne
+    private Role role = Role.ROLE_USER; // Default to user role TODO: Veit ekki hvort það make-ar sens
 
     private byte[] profilePicture;
 
@@ -42,8 +50,6 @@ public class Account {
         return password;
     }
 
-    public boolean isAdmin() { return this.isAdmin; }
-
     public byte[] getProfilePicture() {
         return this.profilePicture;
     }
@@ -56,12 +62,19 @@ public class Account {
         this.email = email;
     }
 
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
     public Account() {}
 
-    public Account(String email, String username, String password, boolean isAdmin) {
+    public Account(String email, String username, String password) {
         this.email = email;
         this.username = username;
         this.password = password;
-        this.isAdmin = isAdmin;
     }
 }

@@ -3,6 +3,7 @@ package org.team5.api.feature.course;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -21,12 +22,16 @@ public class CourseController {
     }
 
     @PostMapping("/courses")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ExtendedCourseDto> createCourse(
             @Valid @RequestBody CreateCourseRequest request,
             @AuthenticationPrincipal Jwt jwt) {
+
+        /* TODO: I think @PreAuthorize("hasRole('ADMIN')") makes this check redundant now
         if (!Boolean.TRUE.equals(jwt.getClaim("isAdmin"))) {
             throw new ForbiddenException("You do not have permission to perform this action");
         }
+        */
 
         ExtendedCourseDto result = new ExtendedCourseDto(courseService.createCourse(request.name));
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
@@ -63,10 +68,14 @@ public class CourseController {
     }
 
     @GetMapping("/courses")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ExtendedCourseDto>> getAllCourses(@AuthenticationPrincipal Jwt jwt) {
+
+        /* TODO: I think @PreAuthorize("hasRole('ADMIN')") makes this check redundant now
         if (!Boolean.TRUE.equals(jwt.getClaim("isAdmin"))) {
             throw new ForbiddenException("You do not have permission to perform this action");
         }
+        */
 
         List<ExtendedCourseDto> courses = courseService.getAllCourses()
             .stream()
