@@ -120,10 +120,24 @@ public class ThreadServiceImpl implements ThreadService {
     }
 
     @Override
-    public Page<ThreadDto> getThreads(Pageable pageable, String query, UUID courseId) {
+    @Transactional(readOnly = true)
+    public Page<ThreadDto> getThreads(Pageable pageable, String query, UUID courseId, UUID authorId, UUID viewerId) {
+        Account viewer = accountRepository.findById(viewerId)
+            .orElseThrow(() -> new NotFoundException("Account not found"));
+
+        if (courseId == null && !viewer.isAdmin()) {
+            throw new ForbiddenException("Only admins can view threads across all courses");
+        }
+
+        boolean hasAccess = viewer.isAdmin() || courseRepository.existsByIdAndMembersId(courseId, viewerId);
+        if (!hasAccess) {
+            throw new NotFoundException("Course not found");
+        }
+
         Specification<Thread> spec = Specification
             .where(ThreadSpecifications.search(query))
-            .and(ThreadSpecifications.hasCourseId(courseId));
+            .and(ThreadSpecifications.hasCourseId(courseId))
+            .and(ThreadSpecifications.hasAuthorId(authorId));
 
         Page<Thread> threadPage = threadRepository.findAll(spec, pageable);
         return threadPage.map(ThreadDto::new);
