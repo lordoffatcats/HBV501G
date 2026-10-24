@@ -14,5 +14,5 @@ public interface ThreadService {
 
     Thread updateThread(UUID threadId, UUID authorId, String title, String content);
 
-    void deleteThread(UUID threadId, UUID authorId);
+    void deleteThread(UUID threadId, UUID actorId);
 }

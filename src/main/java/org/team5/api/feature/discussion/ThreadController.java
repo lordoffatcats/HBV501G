@@ -72,8 +72,8 @@ public class ThreadController {
     public ResponseEntity<Void> deleteThread(
             @PathVariable UUID id,
             @AuthenticationPrincipal Jwt jwt) {
-        UUID authorId = SubjectExtractor.GetSubject(jwt);
-        threadService.deleteThread(id, authorId);
+        UUID actorId = SubjectExtractor.GetSubject(jwt);
+        threadService.deleteThread(id, actorId);
         return ResponseEntity.noContent().build();
     }
 
