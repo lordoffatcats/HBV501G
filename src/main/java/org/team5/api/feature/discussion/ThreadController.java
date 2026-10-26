@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-import org.team5.api.exceptions.ForbiddenException;
 import org.team5.api.feature.SubjectExtractor;
 
 import java.util.UUID;
@@ -57,10 +56,10 @@ public class ThreadController {
             @PathVariable UUID id,
             @Valid @RequestBody UpdateThreadRequest request,
             @AuthenticationPrincipal Jwt jwt) {
-        UUID authorId = SubjectExtractor.GetSubject(jwt);
+        UUID actorId = SubjectExtractor.GetSubject(jwt);
         Thread thread = threadService.updateThread(
             id,
-            authorId,
+            actorId,
             request.title,
             request.content
         );
@@ -72,8 +71,8 @@ public class ThreadController {
     public ResponseEntity<Void> deleteThread(
             @PathVariable UUID id,
             @AuthenticationPrincipal Jwt jwt) {
-        UUID authorId = SubjectExtractor.GetSubject(jwt);
-        threadService.deleteThread(id, authorId);
+        UUID actorId = SubjectExtractor.GetSubject(jwt);
+        threadService.deleteThread(id, actorId);
         return ResponseEntity.noContent().build();
     }
 
@@ -81,13 +80,11 @@ public class ThreadController {
     public ResponseEntity<Page<ThreadDto>> getAllThreads(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) UUID courseId,
+            @RequestParam(required = false) UUID authorId,
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal Jwt jwt) {
-        if (courseId == null && !Boolean.TRUE.equals(jwt.getClaim("isAdmin"))) {
-            throw new ForbiddenException("You are required to provide a course id");
-        }
-
-        Page<ThreadDto> threads = threadService.getThreads(pageable, query, courseId);
+        UUID viewerId = SubjectExtractor.GetSubject(jwt);
+        Page<ThreadDto> threads = threadService.getThreads(pageable, query, courseId, authorId, viewerId);
         return ResponseEntity.ok(threads);
     }
 
