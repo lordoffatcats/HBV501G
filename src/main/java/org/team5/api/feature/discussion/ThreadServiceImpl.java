@@ -103,14 +103,14 @@ public class ThreadServiceImpl implements ThreadService {
 
     @Override
     @Transactional
-    public void deleteThread(
-            UUID threadId,
-            UUID authorId) {
-
+    public void deleteThread(UUID threadId, UUID actorId) {
         Thread thread = threadRepository.findById(threadId)
-                .orElseThrow(() -> new NotFoundException("Discussion thread not found"));
+            .orElseThrow(() -> new NotFoundException("Discussion thread not found"));
 
-        if (!thread.getAuthor().getId().equals(authorId)) {
+        Account actor = accountRepository.findById(actorId)
+            .orElseThrow(() -> new NotFoundException("Account not found"));
+
+        if (!actor.isAdmin() && !thread.getAuthor().getId().equals(actor.getId())) {
             throw new ForbiddenException("You can only delete your own discussion thread");
         }
 
@@ -118,10 +118,24 @@ public class ThreadServiceImpl implements ThreadService {
     }
 
     @Override
-    public Page<ThreadDto> getThreads(Pageable pageable, String query, UUID courseId) {
+    @Transactional(readOnly = true)
+    public Page<ThreadDto> getThreads(Pageable pageable, String query, UUID courseId, UUID authorId, UUID viewerId) {
+        Account viewer = accountRepository.findById(viewerId)
+            .orElseThrow(() -> new NotFoundException("Account not found"));
+
+        if (courseId == null && !viewer.isAdmin()) {
+            throw new ForbiddenException("Only admins can view threads across all courses");
+        }
+
+        boolean hasAccess = viewer.isAdmin() || courseRepository.existsByIdAndMembersId(courseId, viewerId);
+        if (!hasAccess) {
+            throw new NotFoundException("Course not found");
+        }
+
         Specification<Thread> spec = Specification
             .where(ThreadSpecifications.search(query))
-            .and(ThreadSpecifications.hasCourseId(courseId));
+            .and(ThreadSpecifications.hasCourseId(courseId))
+            .and(ThreadSpecifications.hasAuthorId(authorId));
 
         Page<Thread> threadPage = threadRepository.findAll(spec, pageable);
         return threadPage.map(ThreadDto::new);
