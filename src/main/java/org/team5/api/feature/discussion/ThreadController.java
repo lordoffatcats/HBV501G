@@ -56,10 +56,10 @@ public class ThreadController {
             @PathVariable UUID id,
             @Valid @RequestBody UpdateThreadRequest request,
             @AuthenticationPrincipal Jwt jwt) {
-        UUID authorId = SubjectExtractor.GetSubject(jwt);
+        UUID actorId = SubjectExtractor.GetSubject(jwt);
         Thread thread = threadService.updateThread(
             id,
-            authorId,
+            actorId,
             request.title,
             request.content
         );
