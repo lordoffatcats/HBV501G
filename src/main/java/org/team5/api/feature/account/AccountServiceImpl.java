@@ -5,6 +5,7 @@ import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.team5.api.exceptions.ConflictException;
 import org.team5.api.exceptions.NotFoundException;
 import org.team5.api.exceptions.UnauthorizedException;
@@ -86,8 +87,12 @@ public class AccountServiceImpl  implements AccountService {
         // TODO:
     }
 
+    @Transactional
     public Account updateProfilePicture(UUID id, byte[] profilePicture) {
-        // TODO:
-        return null;
+        Account account = accountRepository.findById(id)
+            .orElseThrow(() -> new NotFoundException("Account no found with id: " + id));
+
+        account.setProfilePicture(profilePicture);
+        return accountRepository.save(account);
     }
 }
