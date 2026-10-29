@@ -1,12 +1,13 @@
 package org.team5.api.feature.account;
 
+import jakarta.validation.Valid;
 import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.team5.api.exceptions.BadRequestException;
 import org.team5.api.exceptions.ForbiddenException;
-import org.team5.api.exceptions.UnauthorizedException;
+import org.team5.api.feature.SubjectExtractor;
 
 import java.util.Base64;
 import java.util.UUID;
@@ -21,150 +22,93 @@ public class AccountController {
 
     @PostMapping("/accounts")
     public ResponseEntity<ExtendedAccountDto> createAccount(
-            @RequestBody CreateAccountRequest request) {
-        String email = request.email();
-        String username = request.username();
-        String password = request.password();
-
-        if (email == null || email.isBlank() || username == null || username.isBlank() || password == null || password.isBlank()) {
-            throw new BadRequestException("Email, username and password are required");
-        }
-
+            @Valid @RequestBody CreateAccountRequest request) {
         ExtendedAccountDto result = new ExtendedAccountDto(
             accountService.createAccount(
-                email,
-                username,
-                password,
+                request.email,
+                request.username,
+                request.password,
                 false
             )
         );
+
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
     @PostMapping("/accounts/tokens")
-    public ResponseEntity<String> signIn(@RequestBody SignInRequest request) {
-        String username = request.username();
-        String password = request.password();
-        if (username == null || username.isBlank() || password == null || password.isBlank()) {
-            throw new BadRequestException("Username and password are required");
-        }
-        String token = accountService.authenticate(username, password);
-
-        // TODO: For future maybe set browser cookie, instead of just returning raw token.
+    public ResponseEntity<String> signIn(@Valid @RequestBody LoginRequest request) {
+        String token = accountService.authenticate(request.username, request.password);
         return ResponseEntity.ok(token);
     }
 
     @PatchMapping("/accounts")
     public ResponseEntity<ExtendedAccountDto> editAccount(
-            @RequestBody UpdateAccountRequest request,
+            @Valid @RequestBody UpdateAccountRequest request,
             @AuthenticationPrincipal Jwt jwt) {
-        String subject = jwt.getSubject();
-        if (subject == null) {
-            throw new UnauthorizedException("Invalid token.");
-        }
-
-        UUID userId = UUID.fromString(subject);
-        if (request.email().isEmpty()) {
-            throw new BadRequestException("Email is required");
-        }
-
-        Account updatedAccount = accountService.updateAccount(userId, request);
+        UUID userId = SubjectExtractor.GetSubject(jwt);
+        Account updatedAccount = accountService.updateAccount(userId, request.email);
         ExtendedAccountDto result = new ExtendedAccountDto(updatedAccount);
         return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/accounts/{id}")
-    public ResponseEntity<Void> deleteAccount(
-            @PathVariable UUID id,
-            @AuthenticationPrincipal Jwt jwt) {
-        String subject = jwt.getSubject();
-
-        if(subject==null) {
-            throw new UnauthorizedException("Invalid token.");
-        }
-        if(!UUID.fromString(subject).equals(id)) {
-            throw new UnauthorizedException("You do not have permission to delete id: "+ id);
-        }
-        accountService.deleteAccount(id);
-
-        return ResponseEntity.noContent().build();
+    public void deleteAccount(@PathVariable UUID id) {
+        // TODO:
     }
 
     @PostMapping("/accounts/admins")
     public ResponseEntity<ExtendedAccountDto> createAdminAccount(
-            @RequestBody CreateAccountRequest request,
+            @Valid @RequestBody CreateAccountRequest request,
             @AuthenticationPrincipal Jwt jwt) {
         if (!Boolean.TRUE.equals(jwt.getClaim("isAdmin"))) {
             throw new ForbiddenException("You do not have permission to perform this action.");
         }
 
-        String email = request.email();
-        String username = request.username();
-        String password = request.password();
-        if (email == null || email.isBlank() || username == null || username.isBlank() || password == null || password.isBlank()) {
-            throw new BadRequestException("Email, username and password are required");
-        }
         ExtendedAccountDto result = new ExtendedAccountDto(
-                accountService.createAccount(
-                        email,
-                        username,
-                        password,
-                        true
-                )
+            accountService.createAccount(
+                request.email,
+                request.username,
+                request.password,
+                true
+            )
         );
+
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
 
     @GetMapping("/accounts")
-    public ResponseEntity<ExtendedAccountDto> getAccount(@AuthenticationPrincipal Jwt jwt) {
-        String subject = jwt.getSubject();
-        if(subject==null) {
-            throw new UnauthorizedException("Invalid token.");
-        }
-        Account account = accountService.getAccount(UUID.fromString(subject));
-        ExtendedAccountDto accountDto = new ExtendedAccountDto(account);
-        return ResponseEntity.ok(accountDto);
+    public ExtendedAccountDto getAccount() {
+        // TODO: get users own account
+        return null;
     }
 
     @GetMapping("/accounts/{id}")
-    public ResponseEntity<ExtendedAccountDto> getAccountAsAdmin(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
-        if (!Boolean.TRUE.equals(jwt.getClaim("isAdmin"))) {
-            throw new ForbiddenException("You do not have permission to perform this action.");
-        }
-        Account account = accountService.getAccount(id);
-        ExtendedAccountDto accountDto = new ExtendedAccountDto(account);
-        return ResponseEntity.ok(accountDto);
+    public ExtendedAccountDto getAccountAsAdmin(UUID id) {
+        // TODO: as admin get a users account by id
+        return null;
     }
 
     @PatchMapping("/accounts/{id}")
-    public ResponseEntity<ExtendedAccountDto> editAccountAsAdmin(
-            @PathVariable UUID id,
-            @RequestBody UpdateAccountRequest request,
-            @AuthenticationPrincipal Jwt jwt) {
-        if (!Boolean.TRUE.equals(jwt.getClaim("isAdmin"))) {
-            throw new ForbiddenException("You do not have permission to perform this action.");
-        }
-        String subject = jwt.getSubject();
-        if (subject == null) {
-            throw new UnauthorizedException("Invalid token.");
-        }
-
-        if (request.email().isEmpty()) {
-            throw new BadRequestException("Email is required");
-        }
-
-        Account updatedAccount = accountService.updateAccount(id, request);
-        ExtendedAccountDto result = new ExtendedAccountDto(updatedAccount);
-        return ResponseEntity.ok(result);
+    public ExtendedAccountDto editAccountAsAdmin(UUID id, Account account) {
+        // TODO: as admin update users account by id
+        return null;
     }
 
-    @PutMapping(
-            value = "accounts/profile-picture",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE //takes in an image file
-    )
-    public ExtendedAccountDto uploadProfilePicture(UUID id, Base64 profilePicture) {
-        // TODO: update a
-        return null;
+    @PostMapping("/accounts/profile-picture")
+    public ResponseEntity<ExtendedAccountDto> uploadProfilePicture(
+            @Valid @RequestBody UploadProfilePictureRequest request,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = SubjectExtractor.GetSubject(jwt);
+        byte[] imageBytes;
+
+        try {
+            imageBytes = Base64.getDecoder().decode(request.profilePicture);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Invalid Base64 image");
+        }
+
+        ExtendedAccountDto result = new ExtendedAccountDto(accountService.updateProfilePicture(userId, imageBytes));
+        return ResponseEntity.ok(result);
     }
 }

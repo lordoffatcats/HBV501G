@@ -5,13 +5,13 @@ import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.team5.api.exceptions.ConflictException;
 import org.team5.api.exceptions.NotFoundException;
 import org.team5.api.exceptions.UnauthorizedException;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -68,27 +68,31 @@ public class AccountServiceImpl  implements AccountService {
     }
 
     public Account getAccount(UUID id) {
-        return accountRepository.findById(id)
-                .orElseThrow( () -> new NotFoundException("Account no found with id: " + id));
+        // TODO:
+        return null;
     }
 
-    public Account updateAccount(UUID id, UpdateAccountRequest request) {
+    public Account updateAccount(UUID id, String email) {
         Account existingAccount = accountRepository.findById(id)
                 .orElseThrow( () -> new NotFoundException("Account no found with id: " + id));
 
-        if (request.email() != null) {
-            existingAccount.setEmail(request.email());
+        if (email != null) {
+            existingAccount.setEmail(email);
         }
 
         return accountRepository.save(existingAccount);
     }
 
     public void deleteAccount(UUID id) {
-        accountRepository.deleteById(id);
+        // TODO:
     }
 
-    public Account updateProfilePicture(UUID id, Base64 profilePicture) {
-        // TODO:
-        return null;
+    @Transactional
+    public Account updateProfilePicture(UUID id, byte[] profilePicture) {
+        Account account = accountRepository.findById(id)
+            .orElseThrow(() -> new NotFoundException("Account no found with id: " + id));
+
+        account.setProfilePicture(profilePicture);
+        return accountRepository.save(account);
     }
 }

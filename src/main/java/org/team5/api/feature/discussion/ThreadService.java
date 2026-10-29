@@ -10,9 +10,9 @@ public interface ThreadService {
 
     Thread getThread(UUID threadId, UUID viewerId);
 
-    Page<ThreadDto> getThreads(Pageable pageable, String query, UUID courseId);
+    Page<ThreadDto> getThreads(Pageable pageable, String query, UUID courseId, UUID authorId, UUID viewerId);
 
-    Thread updateThread(UUID threadId, UUID authorId, String title, String content);
+    Thread updateThread(UUID threadId, UUID actorId, String title, String content);
 
-    void deleteThread(UUID threadId, UUID authorId);
+    void deleteThread(UUID threadId, UUID actorId);
 }

@@ -1,5 +1,6 @@
 package org.team5.api.feature.discussion;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -9,11 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-import org.team5.api.exceptions.BadRequestException;
-import org.team5.api.exceptions.ForbiddenException;
-import org.team5.api.exceptions.UnauthorizedException;
+import org.team5.api.feature.SubjectExtractor;
 
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -28,110 +26,42 @@ public class ThreadController {
     @PostMapping("/courses/{courseId}/threads")
     public ResponseEntity<ThreadDto> createThread(
             @PathVariable UUID courseId,
-            @RequestBody Map<String, String> body,
+            @Valid @RequestBody CreateThreadRequest request,
             @AuthenticationPrincipal Jwt jwt
     ) {
-        String subject = jwt.getSubject();
-        if (subject == null) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
-        UUID authorId;
-        try {
-            authorId = UUID.fromString(subject);
-        } catch (IllegalArgumentException exception) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
-        String title = body.get("title");
-        String content = body.get("content");
-
-        if (title == null || title.isBlank()) {
-            throw new BadRequestException("Title is required");
-        }
-
-        if (title.length() > 100) {
-            throw new BadRequestException("Title must not exceed 100 characters");
-        }
-
-        if (content == null || content.isBlank()) {
-            throw new BadRequestException("Content is required");
-        }
-
+        UUID authorId = SubjectExtractor.GetSubject(jwt);
         Thread thread = threadService.createThread(
-                courseId,
-                authorId,
-                title,
-                content
+            courseId,
+            authorId,
+            request.title,
+            request.content
         );
 
         return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(new ThreadDto(thread));
+            .status(HttpStatus.CREATED)
+            .body(new ThreadDto(thread));
     }
 
     @GetMapping("/threads/{id}")
     public ResponseEntity<ThreadDto> getThread(
             @PathVariable UUID id,
             @AuthenticationPrincipal Jwt jwt) {
-        if (jwt == null || jwt.getSubject() == null) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
-        UUID viewerId;
-        try {
-            viewerId = UUID.fromString(jwt.getSubject());
-        } catch (IllegalArgumentException exception) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
+        UUID viewerId = SubjectExtractor.GetSubject(jwt);
         Thread thread = threadService.getThread(id, viewerId);
-
         return ResponseEntity.ok(new ThreadDto(thread));
     }
 
     @PatchMapping("/threads/{id}")
     public ResponseEntity<ThreadDto> editThread(
             @PathVariable UUID id,
-            @RequestBody Map<String, String> body,
+            @Valid @RequestBody UpdateThreadRequest request,
             @AuthenticationPrincipal Jwt jwt) {
-        if (jwt == null || jwt.getSubject() == null) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
-        UUID authorId;
-        try {
-            authorId = UUID.fromString(jwt.getSubject());
-        } catch (IllegalArgumentException exception) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
-        String title = body.get("title");
-        String content = body.get("content");
-
-        if (title == null && content == null) {
-            throw new BadRequestException("Title or content is required");
-        }
-
-        if (title != null) {
-            if (title.isBlank()) {
-                throw new BadRequestException("Title is required");
-            }
-
-            if (title.length() > 100) {
-                throw new BadRequestException("Title must not exceed 100 characters");
-            }
-        }
-
-        if (content != null && content.isBlank()) {
-            throw new BadRequestException("Content is required");
-        }
-
+        UUID actorId = SubjectExtractor.GetSubject(jwt);
         Thread thread = threadService.updateThread(
-                id,
-                authorId,
-                title,
-                content
+            id,
+            actorId,
+            request.title,
+            request.content
         );
 
         return ResponseEntity.ok(new ThreadDto(thread));
@@ -141,19 +71,8 @@ public class ThreadController {
     public ResponseEntity<Void> deleteThread(
             @PathVariable UUID id,
             @AuthenticationPrincipal Jwt jwt) {
-        if (jwt == null || jwt.getSubject() == null) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
-        UUID authorId;
-        try {
-            authorId = UUID.fromString(jwt.getSubject());
-        } catch (IllegalArgumentException exception) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
-        threadService.deleteThread(id, authorId);
-
+        UUID actorId = SubjectExtractor.GetSubject(jwt);
+        threadService.deleteThread(id, actorId);
         return ResponseEntity.noContent().build();
     }
 
@@ -161,13 +80,11 @@ public class ThreadController {
     public ResponseEntity<Page<ThreadDto>> getAllThreads(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) UUID courseId,
+            @RequestParam(required = false) UUID authorId,
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal Jwt jwt) {
-        if (courseId == null && !Boolean.TRUE.equals(jwt.getClaim("isAdmin"))) {
-            throw new ForbiddenException("You are required to provide a course id");
-        }
-
-        Page<ThreadDto> threads = threadService.getThreads(pageable, query, courseId);
+        UUID viewerId = SubjectExtractor.GetSubject(jwt);
+        Page<ThreadDto> threads = threadService.getThreads(pageable, query, courseId, authorId, viewerId);
         return ResponseEntity.ok(threads);
     }
 

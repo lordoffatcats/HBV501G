@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import org.team5.api.feature.course.Course;
 
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,7 +21,7 @@ public class Account {
 
     private boolean isAdmin;
 
-    private Base64 profilePicture;
+    private byte[] profilePicture;
 
     @ManyToMany(mappedBy = "members")
     private List<Course> courses = new ArrayList<>();
@@ -45,16 +44,16 @@ public class Account {
 
     public boolean isAdmin() { return this.isAdmin; }
 
-    public Base64 getProfilePicture() {
+    public byte[] getProfilePicture() {
         return this.profilePicture;
-    }
-
-    public List<Course> getCourses() {
-        return this.courses;
     }
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public void setProfilePicture(byte[] profilePicture) {
+        this.profilePicture = profilePicture;
     }
 
     public Account() {}
