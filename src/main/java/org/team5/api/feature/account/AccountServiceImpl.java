@@ -6,9 +6,15 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.team5.api.exceptions.BadRequestException;
 import org.team5.api.exceptions.ConflictException;
+import org.team5.api.exceptions.ForbiddenException;
 import org.team5.api.exceptions.NotFoundException;
 import org.team5.api.exceptions.UnauthorizedException;
+import org.team5.api.feature.course.Course;
+import org.team5.api.feature.course.CourseRepository;
+import org.team5.api.feature.discussion.ThreadRepository;
+import org.team5.api.feature.reply.ReplyRepository;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -17,17 +23,34 @@ import java.util.UUID;
 
 @Service
 public class AccountServiceImpl  implements AccountService {
+    private static final String DELETED_USERNAME = "deleted-user";
+
     private final AccountRepository accountRepository;
+    private final CourseRepository courseRepository;
+    private final ThreadRepository threadRepository;
+    private final ReplyRepository replyRepository;
     private final JwtEncoder jwtEncoder;
     private final PasswordEncoder passwordEncoder;
 
-    public AccountServiceImpl(AccountRepository accountRepository, JwtEncoder jwtEncoder, PasswordEncoder passwordEncoder) {
+    public AccountServiceImpl(
+            AccountRepository accountRepository,
+            CourseRepository courseRepository,
+            ThreadRepository threadRepository,
+            ReplyRepository replyRepository,
+            JwtEncoder jwtEncoder,
+            PasswordEncoder passwordEncoder) {
         this.accountRepository = accountRepository;
+        this.courseRepository = courseRepository;
+        this.threadRepository = threadRepository;
+        this.replyRepository = replyRepository;
         this.jwtEncoder = jwtEncoder;
         this.passwordEncoder = passwordEncoder;
     }
 
     public Account createAccount(String email, String username, String password, boolean isAdmin) {
+        if (DELETED_USERNAME.equalsIgnoreCase(username)) {
+            throw new ConflictException("Username already exists");
+        }
         Optional<Account> existingAccount = accountRepository.findByUsername(username);
         if (existingAccount.isPresent()) {
             throw new ConflictException("Username already exists");
@@ -68,8 +91,13 @@ public class AccountServiceImpl  implements AccountService {
     }
 
     public Account getAccount(UUID id) {
-        // TODO:
-        return null;
+        return accountRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Account not found"));
+    }
+
+    public Account getAccountAsAdmin(UUID actorId, UUID id) {
+        requireAdmin(actorId);
+        return getAccount(id);
     }
 
     public Account updateAccount(UUID id, String email) {
@@ -83,8 +111,49 @@ public class AccountServiceImpl  implements AccountService {
         return accountRepository.save(existingAccount);
     }
 
-    public void deleteAccount(UUID id) {
-        // TODO:
+    public Account updateAccountAsAdmin(UUID actorId, UUID id, String email) {
+        requireAdmin(actorId);
+        return updateAccount(id, email);
+    }
+
+    @Transactional
+    public void deleteAccount(UUID actorId, UUID id) {
+        Account actor = getAccount(actorId);
+        if (!actor.isAdmin() && !actor.getId().equals(id)) {
+            throw new ForbiddenException("You can only delete your own account");
+        }
+
+        Account account = getAccount(id);
+        if (DELETED_USERNAME.equals(account.getUsername())) {
+            throw new BadRequestException("This account cannot be deleted");
+        }
+
+        Account deletedUser = getOrCreateDeletedUser();
+        threadRepository.reassignAuthor(id, deletedUser);
+        replyRepository.reassignAuthor(id, deletedUser);
+
+        for (Course course : courseRepository.findByMembersId(id)) {
+            course.getMembers().removeIf(member -> member.getId().equals(id));
+        }
+
+        accountRepository.deleteById(id);
+    }
+
+    private void requireAdmin(UUID actorId) {
+        Account actor = getAccount(actorId);
+        if (!actor.isAdmin()) {
+            throw new ForbiddenException("You do not have permission to perform this action.");
+        }
+    }
+
+    private Account getOrCreateDeletedUser() {
+        return accountRepository.findByUsername(DELETED_USERNAME)
+                .orElseGet(() -> accountRepository.save(new Account(
+                        null,
+                        DELETED_USERNAME,
+                        passwordEncoder.encode(UUID.randomUUID().toString()),
+                        false
+                )));
     }
 
     @Transactional
