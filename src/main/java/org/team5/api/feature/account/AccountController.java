@@ -52,8 +52,12 @@ public class AccountController {
     }
 
     @DeleteMapping("/accounts/{id}")
-    public void deleteAccount(@PathVariable UUID id) {
-        // TODO:
+    public ResponseEntity<Void> deleteAccount(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = SubjectExtractor.GetSubject(jwt);
+        accountService.deleteAccount(userId, id);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/accounts/admins")
@@ -78,21 +82,30 @@ public class AccountController {
 
 
     @GetMapping("/accounts")
-    public ExtendedAccountDto getAccount() {
-        // TODO: get users own account
-        return null;
+    public ResponseEntity<ExtendedAccountDto> getAccount(@AuthenticationPrincipal Jwt jwt) {
+        UUID userId = SubjectExtractor.GetSubject(jwt);
+        ExtendedAccountDto result = new ExtendedAccountDto(accountService.getAccount(userId));
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/accounts/{id}")
-    public ExtendedAccountDto getAccountAsAdmin(UUID id) {
-        // TODO: as admin get a users account by id
-        return null;
+    public ResponseEntity<ExtendedAccountDto> getAccountAsAdmin(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = SubjectExtractor.GetSubject(jwt);
+        ExtendedAccountDto result = new ExtendedAccountDto(accountService.getAccountAsAdmin(userId, id));
+        return ResponseEntity.ok(result);
     }
 
     @PatchMapping("/accounts/{id}")
-    public ExtendedAccountDto editAccountAsAdmin(UUID id, Account account) {
-        // TODO: as admin update users account by id
-        return null;
+    public ResponseEntity<ExtendedAccountDto> editAccountAsAdmin(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateAccountRequest request,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID userId = SubjectExtractor.GetSubject(jwt);
+        Account updatedAccount = accountService.updateAccountAsAdmin(userId, id, request.email);
+        ExtendedAccountDto result = new ExtendedAccountDto(updatedAccount);
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/accounts/profile-picture")
