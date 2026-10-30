@@ -48,10 +48,10 @@ public class ThreadController {
             @AuthenticationPrincipal Jwt jwt) {
         UUID viewerId = SubjectExtractor.GetSubject(jwt);
         Thread thread = threadService.getThread(id, viewerId);
-        return ResponseEntity.ok(new ThreadDto(thread));
+        return ResponseEntity.ok(new ExtendedThreadDto(thread));
     }
 
-    @PatchMapping("/threads/{id}")
+    @PutMapping("/threads/{id}")
     public ResponseEntity<ThreadDto> editThread(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateThreadRequest request,

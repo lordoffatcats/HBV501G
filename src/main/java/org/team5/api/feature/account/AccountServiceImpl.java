@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.team5.api.exceptions.BadRequestException;
 import org.team5.api.exceptions.ConflictException;
-import org.team5.api.exceptions.ForbiddenException;
 import org.team5.api.exceptions.NotFoundException;
 import org.team5.api.exceptions.UnauthorizedException;
 import org.team5.api.feature.course.Course;
@@ -60,13 +59,16 @@ public class AccountServiceImpl  implements AccountService {
     }
 
     public String authenticate(String username, String password) {
+        if (username.equals(DELETED_USERNAME)) {
+            throw new UnauthorizedException("Invalid username or password");
+        }
+
         Optional<Account> account = accountRepository.findByUsername(username);
         if (account.isEmpty()) {
             throw new UnauthorizedException("Invalid username or password");
         }
 
         Account existingAccount = account.get();
-
         if (!passwordEncoder.matches(password, existingAccount.getPassword())) {
             throw new UnauthorizedException("Invalid username or password");
         }
@@ -95,11 +97,6 @@ public class AccountServiceImpl  implements AccountService {
                 .orElseThrow(() -> new NotFoundException("Account not found"));
     }
 
-    public Account getAccountAsAdmin(UUID actorId, UUID id) {
-        requireAdmin(actorId);
-        return getAccount(id);
-    }
-
     public Account updateAccount(UUID id, String email) {
         Account existingAccount = accountRepository.findById(id)
                 .orElseThrow( () -> new NotFoundException("Account no found with id: " + id));
@@ -111,18 +108,8 @@ public class AccountServiceImpl  implements AccountService {
         return accountRepository.save(existingAccount);
     }
 
-    public Account updateAccountAsAdmin(UUID actorId, UUID id, String email) {
-        requireAdmin(actorId);
-        return updateAccount(id, email);
-    }
-
     @Transactional
-    public void deleteAccount(UUID actorId, UUID id) {
-        Account actor = getAccount(actorId);
-        if (!actor.isAdmin() && !actor.getId().equals(id)) {
-            throw new ForbiddenException("You can only delete your own account");
-        }
-
+    public void deleteAccount(UUID id) {
         Account account = getAccount(id);
         if (DELETED_USERNAME.equals(account.getUsername())) {
             throw new BadRequestException("This account cannot be deleted");
@@ -137,13 +124,6 @@ public class AccountServiceImpl  implements AccountService {
         }
 
         accountRepository.deleteById(id);
-    }
-
-    private void requireAdmin(UUID actorId) {
-        Account actor = getAccount(actorId);
-        if (!actor.isAdmin()) {
-            throw new ForbiddenException("You do not have permission to perform this action.");
-        }
     }
 
     private Account getOrCreateDeletedUser() {
