@@ -41,7 +41,7 @@ public class AccountController {
         return ResponseEntity.ok(token);
     }
 
-    @PatchMapping("/accounts")
+    @PutMapping("/accounts")
     public ResponseEntity<ExtendedAccountDto> editAccount(
             @Valid @RequestBody UpdateAccountRequest request,
             @AuthenticationPrincipal Jwt jwt) {
@@ -55,8 +55,13 @@ public class AccountController {
     public ResponseEntity<Void> deleteAccount(
             @PathVariable UUID id,
             @AuthenticationPrincipal Jwt jwt) {
+        boolean isAdmin = Boolean.TRUE.equals(jwt.getClaim("isAdmin"));
         UUID userId = SubjectExtractor.GetSubject(jwt);
-        accountService.deleteAccount(userId, id);
+        if (!isAdmin && !userId.equals(id)) {
+            throw new ForbiddenException("You can only delete your own account");
+        }
+
+        accountService.deleteAccount(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -92,18 +97,24 @@ public class AccountController {
     public ResponseEntity<ExtendedAccountDto> getAccountAsAdmin(
             @PathVariable UUID id,
             @AuthenticationPrincipal Jwt jwt) {
-        UUID userId = SubjectExtractor.GetSubject(jwt);
-        ExtendedAccountDto result = new ExtendedAccountDto(accountService.getAccountAsAdmin(userId, id));
+        if (!Boolean.TRUE.equals(jwt.getClaim("isAdmin"))) {
+            throw new ForbiddenException("You do not have permission to perform this action");
+        }
+
+        ExtendedAccountDto result = new ExtendedAccountDto(accountService.getAccount(id));
         return ResponseEntity.ok(result);
     }
 
-    @PatchMapping("/accounts/{id}")
+    @PutMapping("/accounts/{id}")
     public ResponseEntity<ExtendedAccountDto> editAccountAsAdmin(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateAccountRequest request,
             @AuthenticationPrincipal Jwt jwt) {
-        UUID userId = SubjectExtractor.GetSubject(jwt);
-        Account updatedAccount = accountService.updateAccountAsAdmin(userId, id, request.email);
+        if (!Boolean.TRUE.equals(jwt.getClaim("isAdmin"))) {
+            throw new ForbiddenException("You do not have permission to perform this action");
+        }
+
+        Account updatedAccount = accountService.updateAccount(id, request.email);
         ExtendedAccountDto result = new ExtendedAccountDto(updatedAccount);
         return ResponseEntity.ok(result);
     }

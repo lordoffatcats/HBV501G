@@ -6,9 +6,7 @@ public interface AccountService {
     Account createAccount(String email, String username, String password, boolean isAdmin);
     String authenticate(String username, String password);
     Account getAccount(UUID id);
-    Account getAccountAsAdmin(UUID actorId, UUID id);
     Account updateAccount(UUID id, String email);
-    Account updateAccountAsAdmin(UUID actorId, UUID id, String email);
-    void deleteAccount(UUID actorId, UUID id);
+    void deleteAccount(UUID id);
     Account updateProfilePicture(UUID id, byte[] profilePicture);
 }
