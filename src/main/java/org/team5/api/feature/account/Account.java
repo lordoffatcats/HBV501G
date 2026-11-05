@@ -9,6 +9,7 @@ import java.util.UUID;
 
 @Entity
 public class Account {
+
     @Id @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
@@ -41,19 +42,19 @@ public class Account {
         return password;
     }
 
+    public boolean isAdmin() { return this.isAdmin; }
+
     public byte[] getProfilePicture() {
         return this.profilePicture;
-    }
-
-    public List<Course> getCourses() {
-        return this.courses;
     }
 
     public void setEmail(String email) {
         this.email = email;
     }
 
-    public boolean isAdmin() { return this.isAdmin; }
+    public void setProfilePicture(byte[] profilePicture) {
+        this.profilePicture = profilePicture;
+    }
 
     public Account() {}
 

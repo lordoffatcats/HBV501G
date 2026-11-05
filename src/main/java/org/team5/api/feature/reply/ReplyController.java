@@ -21,7 +21,7 @@ public class ReplyController {
     @PostMapping("/threads/{threadId}/replies")
     public ResponseEntity<ReplyDto> createReply(
             @PathVariable UUID threadId,
-            @CookieValue @RequestBody CreateReplyRequest request,
+            @Valid @RequestBody CreateReplyRequest request,
             @AuthenticationPrincipal Jwt jwt) {
         UUID accountId = SubjectExtractor.GetSubject(jwt);
         Reply reply = replyService.createReply(
@@ -35,7 +35,7 @@ public class ReplyController {
             .body(new ReplyDto(reply));
     }
 
-    @PatchMapping("/replies/{id}")
+    @PutMapping("/replies/{id}")
     public ResponseEntity<ReplyDto> editReply(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateReplyRequest request,

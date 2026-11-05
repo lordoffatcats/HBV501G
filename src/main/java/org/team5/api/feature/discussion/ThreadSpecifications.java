@@ -25,4 +25,11 @@ public class ThreadSpecifications {
                 ? cb.conjunction()
                 : cb.equal(root.get("course").get("id"), courseId);
     }
+
+    static Specification<Thread> hasAuthorId(UUID authorId) {
+        return (root, query, cb) ->
+                authorId == null
+                        ? cb.conjunction()
+                        : cb.equal(root.get("author").get("id"), authorId);
+    }
 }
