@@ -71,7 +71,7 @@ public class CourseController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ExtendedCourseDto>> getAllCourses(@AuthenticationPrincipal Jwt jwt) {
 
-        /* TODO: I think @PreAuthorize("hasRole('ADMIN')") makes this check redundant now
+        /* I think @PreAuthorize("hasRole('ADMIN')") makes this check redundant now
         if (!Boolean.TRUE.equals(jwt.getClaim("isAdmin"))) {
             throw new ForbiddenException("You do not have permission to perform this action");
         }

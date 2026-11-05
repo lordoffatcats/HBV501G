@@ -16,6 +16,7 @@ import org.team5.api.security.TokenResponse;
 import org.team5.api.security.TokenService;
 
 import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -67,8 +68,10 @@ public class AccountController {
     @DeleteMapping("/accounts/{id}")
     public ResponseEntity<Void> deleteAccount(
             @PathVariable UUID id,
-            @AuthenticationPrincipal Jwt jwt) {
-        boolean isAdmin = Boolean.TRUE.equals(jwt.getClaim("isAdmin"));
+            @AuthenticationPrincipal Jwt jwt,
+            Authentication authentication) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
         UUID userId = SubjectExtractor.GetSubject(jwt);
         if (!isAdmin && !userId.equals(id)) {
             throw new ForbiddenException("You can only delete your own account");
@@ -128,9 +131,9 @@ public class AccountController {
             @PathVariable UUID id,
             @Valid @RequestBody UpdateAccountRequest request,
             @AuthenticationPrincipal Jwt jwt) {
-        if (!Boolean.TRUE.equals(jwt.getClaim("isAdmin"))) {
+        /*if (!Boolean.TRUE.equals(jwt.getClaim("isAdmin"))) {
             throw new ForbiddenException("You do not have permission to perform this action");
-        }
+        }*/
 
         Account updatedAccount = accountService.updateAccount(id, request.email);
         ExtendedAccountDto result = new ExtendedAccountDto(updatedAccount);
