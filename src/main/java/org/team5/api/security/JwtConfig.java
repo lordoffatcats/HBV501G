@@ -12,14 +12,13 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 @Configuration
 public class JwtConfig {
     @Bean
     public SecretKey jwtSecretKey(@Value("${jwt.secret}") String secret) {
-        byte[] bytes = Base64.getDecoder().decode(secret);
+        byte[] bytes = Base64.getUrlDecoder().decode(secret);
         return new SecretKeySpec(bytes, "HmacSHA256");
     }
 

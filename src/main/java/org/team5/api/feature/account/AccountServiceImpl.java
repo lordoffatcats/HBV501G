@@ -28,7 +28,7 @@ public class AccountServiceImpl  implements AccountService {
                 .orElseThrow(() -> new UsernameNotFoundException(username));
         return User.withUsername(account.getUsername())
                 .password(account.getPassword())
-                .roles(account.getRole().toString())
+                .roles(account.getRole())
                 .build();
     }
 
