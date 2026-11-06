@@ -12,13 +12,10 @@ public class SubjectExtractor {
             throw new UnauthorizedException("Invalid token");
         }
 
-        UUID id;
         try {
-            id = UUID.fromString(subject);
+            return UUID.fromString(subject);
         } catch (IllegalArgumentException exception) {
             throw new UnauthorizedException("Invalid token");
         }
-
-        return id;
     }
 }

@@ -56,6 +56,10 @@ public class Account {
         this.profilePicture = profilePicture;
     }
 
+    public String getRole() {
+        return isAdmin() ? "ADMIN" : "USER";
+    }
+
     public Account() {}
 
     public Account(String email, String username, String password, boolean isAdmin) {

@@ -1,9 +1,9 @@
 package org.team5.api.feature.account;
 
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.team5.api.exceptions.BadRequestException;
@@ -15,8 +15,6 @@ import org.team5.api.feature.course.CourseRepository;
 import org.team5.api.feature.discussion.ThreadRepository;
 import org.team5.api.feature.reply.ReplyRepository;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,11 +22,20 @@ import java.util.UUID;
 public class AccountServiceImpl  implements AccountService {
     private static final String DELETED_USERNAME = "deleted-user";
 
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Account account = accountRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException(username));
+        return User.withUsername(account.getUsername())
+                .password(account.getPassword())
+                .roles(account.getRole())
+                .build();
+    }
+
     private final AccountRepository accountRepository;
     private final CourseRepository courseRepository;
     private final ThreadRepository threadRepository;
     private final ReplyRepository replyRepository;
-    private final JwtEncoder jwtEncoder;
     private final PasswordEncoder passwordEncoder;
 
     public AccountServiceImpl(
@@ -36,13 +43,11 @@ public class AccountServiceImpl  implements AccountService {
             CourseRepository courseRepository,
             ThreadRepository threadRepository,
             ReplyRepository replyRepository,
-            JwtEncoder jwtEncoder,
             PasswordEncoder passwordEncoder) {
         this.accountRepository = accountRepository;
         this.courseRepository = courseRepository;
         this.threadRepository = threadRepository;
         this.replyRepository = replyRepository;
-        this.jwtEncoder = jwtEncoder;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -58,39 +63,7 @@ public class AccountServiceImpl  implements AccountService {
         return accountRepository.save(new Account(email, username, hashedPassword, isAdmin));
     }
 
-    public String authenticate(String username, String password) {
-        if (username.equals(DELETED_USERNAME)) {
-            throw new UnauthorizedException("Invalid username or password");
-        }
 
-        Optional<Account> account = accountRepository.findByUsername(username);
-        if (account.isEmpty()) {
-            throw new UnauthorizedException("Invalid username or password");
-        }
-
-        Account existingAccount = account.get();
-        if (!passwordEncoder.matches(password, existingAccount.getPassword())) {
-            throw new UnauthorizedException("Invalid username or password");
-        }
-
-        return createJwt(existingAccount);
-    }
-
-    private String createJwt(Account account) {
-        Instant now = Instant.now();
-
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .subject(account.getId().toString())
-                .claim("username", account.getUsername())
-                .claim("isAdmin",account.isAdmin())
-                .issuedAt(now)
-                .expiresAt(now.plus(1, ChronoUnit.HOURS))
-                .build();
-
-        return jwtEncoder
-                .encode(JwtEncoderParameters.from(claims))
-                .getTokenValue();
-    }
 
     public Account getAccount(UUID id) {
         return accountRepository.findById(id)
