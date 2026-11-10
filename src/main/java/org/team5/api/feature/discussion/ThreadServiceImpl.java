@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.team5.api.exceptions.BadRequestException;
 import org.team5.api.exceptions.ForbiddenException;
 import org.team5.api.exceptions.NotFoundException;
 import org.team5.api.feature.account.Account;
@@ -12,7 +13,11 @@ import org.team5.api.feature.account.AccountRepository;
 import org.team5.api.feature.course.Course;
 import org.team5.api.feature.course.CourseRepository;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class ThreadServiceImpl implements ThreadService {
@@ -20,14 +25,18 @@ public class ThreadServiceImpl implements ThreadService {
     private final ThreadRepository threadRepository;
     private final CourseRepository courseRepository;
     private final AccountRepository accountRepository;
+    private final Map<ThreadSearchType, ThreadSearchStrategy> threadSearchStrategies;
 
     public ThreadServiceImpl(
             ThreadRepository threadRepository,
             CourseRepository courseRepository,
-            AccountRepository accountRepository) {
+            AccountRepository accountRepository,
+            List<ThreadSearchStrategy> threadSearchStrategies) {
         this.threadRepository = threadRepository;
         this.courseRepository = courseRepository;
         this.accountRepository = accountRepository;
+        this.threadSearchStrategies = threadSearchStrategies.stream()
+                .collect(Collectors.toMap(ThreadSearchStrategy::type, Function.identity())); // Mappar öllum threadSearchType í viðeigandi strategíu.
     }
 
     @Override
@@ -119,7 +128,7 @@ public class ThreadServiceImpl implements ThreadService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ThreadDto> getThreads(Pageable pageable, String query, UUID courseId, UUID authorId, UUID viewerId) {
+    public Page<ThreadDto> getThreads(Pageable pageable, String query, ThreadSearchType searchBy, UUID courseId, UUID authorId, UUID viewerId) {
         Account viewer = accountRepository.findById(viewerId)
             .orElseThrow(() -> new NotFoundException("Account not found"));
 
@@ -132,10 +141,11 @@ public class ThreadServiceImpl implements ThreadService {
             throw new NotFoundException("Course not found");
         }
 
-        Specification<Thread> spec = Specification
-            .where(ThreadSpecifications.search(query))
-            .and(ThreadSpecifications.hasCourseId(courseId))
-            .and(ThreadSpecifications.hasAuthorId(authorId));
+        ThreadSearchType type = (searchBy == null) ? ThreadSearchType.ALL : searchBy;
+        ThreadSearchStrategy threadSearchStrategy = threadSearchStrategies.get(searchBy);
+        if (threadSearchStrategy == null) throw new BadRequestException("Unsupported search type: " + type);
+        Specification<Thread> spec = threadSearchStrategy.toSpecification(query)
+                .and(ThreadSpecifications.hasCourseId(courseId));
 
         Page<Thread> threadPage = threadRepository.findAll(spec, pageable);
         return threadPage.map(ThreadDto::new);
