@@ -12,7 +12,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.team5.api.feature.SubjectExtractor;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -80,12 +79,13 @@ public class ThreadController {
     @GetMapping("/threads")
     public ResponseEntity<Page<ThreadDto>> getAllThreads(
             @RequestParam(required = false) String query,
+            @RequestParam(defaultValue = "ALL") ThreadSearchType searchBy,
             @RequestParam(required = false) UUID courseId,
             @RequestParam(required = false) UUID authorId,
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal Jwt jwt) {
         UUID viewerId = SubjectExtractor.GetSubject(jwt);
-        Page<ThreadDto> threads = threadService.getThreads(pageable, query, courseId, authorId, viewerId);
+        Page<ThreadDto> threads = threadService.getThreads(pageable, query, searchBy, courseId, authorId, viewerId);
         return ResponseEntity.ok(threads);
     }
 
