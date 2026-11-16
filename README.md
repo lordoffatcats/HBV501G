@@ -24,8 +24,8 @@
 | 9    | ~~11, 14, 16~~     | 3          | **A3 presentation** |
 | 10   | ~~9, 17~~          | 3          |                     |
 | 11   | ~~7, 12~~          | 3          |                     |
-| 12   | Buffer             | 4          | **A4 presentation** |
-| 13   | Deployment         | 4          |                     |
+| 12   | ~~Buffer~~         | 4          | **A4 presentation** |
+| 13   | ~~Deployment~~     | 4          |                     |
 | 14   |                    |            | **A5 presentation** |
 
 ## Use cases
